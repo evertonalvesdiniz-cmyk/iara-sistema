@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda de Compromissos</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Poppins', Arial, sans-serif; padding: 30px; background: rgba(255, 255, 255, 0.95); min-height: 100vh; }
+h2 { color: #2c3e50; margin-bottom: 25px; font-size: 24px; }
+h3 { color: #4a5568; margin: 20px 0 15px; font-size: 18px; }
+
+.formulario { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px; }
+.campo { margin-bottom: 15px; }
+.campo label { display: block; margin-bottom: 5px; color: #4a5568; font-size: 14px; font-weight: 500; }
+.campo input, .campo select, .campo textarea { width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit; }
+.campo textarea { min-height: 80px; resize: vertical; }
+.linha-dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+button { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+.btn-primario { background-color: #2c3e50; color: white; }
+.btn-primario:hover { background-color: #1a252f; }
+.btn-secundario { background-color: #ccbfb5; color: #2c3e50; }
+.btn-sucesso { background-color: #48bb78; color: white; }
+.btn-perigo { background-color: #e53e3e; color: white; }
+.btn-pequeno { padding: 6px 12px; font-size: 13px; }
+
+.barra-filtros { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+.barra-filtros button { flex: 1; min-width: 120px; }
+.barra-filtros button.ativo { background-color: #2c3e50; color: white; }
+
+.lista-compromissos { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; }
+
+.compromisso-item {
+    padding: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: start;
+    gap: 15px;
+    transition: background 0.2s;
+}
+
+.compromisso-item:hover { background: #f7fafc; }
+.compromisso-item:last-child { border-bottom: none; }
+.compromisso-item.concluido { opacity: 0.6; }
+.compromisso-item.concluido .compromisso-titulo { text-decoration: line-through; }
+
+.checkbox-concluir {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.compromisso-conteudo { flex: 1; }
+
+.compromisso-titulo {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.compromisso-info {
+    font-size: 13px;
+    color: #718096;
+    margin-bottom: 5px;
+}
+
+.compromisso-descricao {
+    font-size: 13px;
+    color: #4a5568;
+    margin-top: 8px;
+    padding: 10px;
+    background: #f7fafc;
+    border-radius: 6px;
+}
+
+.compromisso-acoes {
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+}
+
+.badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-right: 8px; }
+.badge-alta { background: #fed7d7; color: #c53030; }
+.badge-media { background: #feebc8; color: #c05621; }
+.badge-baixa { background: #c6f6d5; color: #22543d; }
+
+.mensagem-vazia { padding: 40px 20px; text-align: center; color: #718096; }
+
+#formEdicao { display: none; }
+#formEdicao.ativo { display: block; }
+</style>
+</head>
+<body>
+
+<h2>Agenda de Compromissos</h2>
+
+<!-- Formulário de Cadastro -->
+<div class="formulario" id="formularioCadastro">
+    <h3>Novo Compromisso</h3>
+    
+    <form id="formCompromisso">
+        <div class="campo">
+            <label>Título *</label>
+            <input type="text" id="titulo" placeholder="Ex: Reunião com cliente João" required>
+        </div>
+        
+        <div class="linha-dupla">
+            <div class="campo">
+                <label>Data *</label>
+                <input type="date" id="data" required>
+            </div>
+            <div class="campo">
+                <label>Hora</label>
+                <input type="time" id="hora">
+            </div>
+        </div>
+        
+        <div class="campo">
+            <label>Prioridade</label>
+            <select id="prioridade">
+                <option value="baixa">Baixa</option>
+                <option value="media" selected>Média</option>
+                <option value="alta">Alta</option>
+            </select>
+        </div>
+        
+        <div class="campo">
+            <label>Descrição</label>
+            <textarea id="descricao" placeholder="Detalhes do compromisso..."></textarea>
+        </div>
+        
+        <button type="submit" class="btn-primario" style="width: 100%;">Adicionar Compromisso</button>
+    </form>
+</div>
+
+<!-- Formulário de Edição -->
+<div class="formulario" id="formEdicao">
+    <h3>Editar Compromisso</h3>
+    
+    <form id="formEditarCompromisso">
+        <input type="hidden" id="editIndice">
+        
+        <div class="campo">
+            <label>Título *</label>
+            <input type="text" id="editTitulo" required>
+        </div>
+        
+        <div class="linha-dupla">
+            <div class="campo">
+                <label>Data *</label>
+                <input type="date" id="editData" required>
+            </div>
+            <div class="campo">
+                <label>Hora</label>
+                <input type="time" id="editHora">
+            </div>
+        </div>
+        
+        <div class="campo">
+            <label>Prioridade</label>
+            <select id="editPrioridade">
+                <option value="baixa">Baixa</option>
+                <option value="media">Média</option>
+                <option value="alta">Alta</option>
+            </select>
+        </div>
+        
+        <div class="campo">
+            <label>Descrição</label>
+            <textarea id="editDescricao"></textarea>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="submit" class="btn-primario" style="flex: 1;">Salvar</button>
+            <button type="button" class="btn-secundario" id="btnCancelarEdicao" style="flex: 1;">Cancelar</button>
+        </div>
+    </form>
+</div>
+
+<!-- Barra de Filtros -->
+<div class="barra-filtros">
+    <button class="btn-secundario ativo" data-filtro="todos">Todos</button>
+    <button class="btn-secundario" data-filtro="pendentes">Pendentes</button>
+    <button class="btn-secundario" data-filtro="concluidos">Concluídos</button>
+    <button class="btn-secundario" data-filtro="hoje">Hoje</button>
+    <button class="btn-secundario" data-filtro="semana">Esta Semana</button>
+</div>
+
+<!-- Lista de Compromissos -->
+<div class="lista-compromissos" id="listaCompromissos">
+    <div class="mensagem-vazia">Nenhum compromisso agendado</div>
+</div>
+
+<script src="utils.js"></script>
+<script>
+// ==================== BANCO DE DADOS ====================
+
+const DB_AGENDA = {
+    STORAGE_KEY: "dbAgenda_v1",
+    
+    carregar() {
+        try {
+            const dados = localStorage.getItem(this.STORAGE_KEY);
+            return dados ? JSON.parse(dados) : [];
+        } catch (erro) {
+            console.error("Erro ao carregar agenda:", erro);
+            return [];
+        }
+    },
+    
+    salvar(compromissos) {
+        try {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(compromissos));
+            return true;
+        } catch (erro) {
+            console.error("Erro ao salvar agenda:", erro);
+            return false;
+        }
+    },
+    
+    adicionar(compromisso) {
+        const compromissos = this.carregar();
+        compromisso.id = 'comp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        compromisso.concluido = false;
+        compromisso.dataCriacao = new Date().toISOString();
+        compromissos.push(compromisso);
+        
+        if (this.salvar(compromissos)) {
+            return { sucesso: true, mensagem: "Compromisso adicionado com sucesso" };
+        }
+        return { sucesso: false, mensagem: "Erro ao salvar compromisso" };
+    },
+    
+    atualizar(indice, compromissoAtualizado) {
+        const compromissos = this.carregar();
+        if (indice < 0 || indice >= compromissos.length) {
+            return { sucesso: false, mensagem: "Compromisso não encontrado" };
+        }
+        
+        compromissoAtualizado.id = compromissos[indice].id;
+        compromissoAtualizado.dataCriacao = compromissos[indice].dataCriacao;
+        compromissoAtualizado.concluido = compromissos[indice].concluido;
+        compromissos[indice] = compromissoAtualizado;
+        
+        if (this.salvar(compromissos)) {
+            return { sucesso: true, mensagem: "Compromisso atualizado com sucesso" };
+        }
+        return { sucesso: false, mensagem: "Erro ao atualizar compromisso" };
+    },
+    
+    toggleConcluido(indice) {
+        const compromissos = this.carregar();
+        if (indice < 0 || indice >= compromissos.length) return false;
+        
+        compromissos[indice].concluido = !compromissos[indice].concluido;
+        return this.salvar(compromissos);
+    },
+    
+    remover(indice) {
+        const compromissos = this.carregar();
+        if (indice < 0 || indice >= compromissos.length) {
+            return { sucesso: false, mensagem: "Compromisso não encontrado" };
+        }
+        
+        compromissos.splice(indice, 1);
+        
+        if (this.salvar(compromissos)) {
+            return { sucesso: true, mensagem: "Compromisso removido com sucesso" };
+        }
+        return { sucesso: false, mensagem: "Erro ao remover compromisso" };
+    }
+};
+
+// ==================== CADASTRO ====================
+
+const elementos = {
+    formCompromisso: document.getElementById('formCompromisso'),
+    formEditarCompromisso: document.getElementById('formEditarCompromisso'),
+    formEdicao: document.getElementById('formEdicao'),
+    formularioCadastro: document.getElementById('formularioCadastro'),
+    listaCompromissos: document.getElementById('listaCompromissos')
+};
+
+// Definir data padrão como hoje
+document.getElementById('data').valueAsDate = new Date();
+
+elementos.formCompromisso.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const compromisso = {
+        titulo: document.getElementById('titulo').value.trim(),
+        data: document.getElementById('data').value,
+        hora: document.getElementById('hora').value,
+        prioridade: document.getElementById('prioridade').value,
+        descricao: document.getElementById('descricao').value.trim()
+    };
+    
+    const resultado = DB_AGENDA.adicionar(compromisso);
+    
+    if (resultado.sucesso) {
+        mostrarNotificacao(resultado.mensagem, 'success');
+        elementos.formCompromisso.reset();
+        document.getElementById('data').valueAsDate = new Date();
+        renderizarCompromissos();
+    } else {
+        mostrarNotificacao(resultado.mensagem, 'error');
+    }
+});
+
+// ==================== RENDERIZAÇÃO ====================
+
+let filtroAtivo = 'todos';
+
+function renderizarCompromissos() {
+    let compromissos = DB_AGENDA.carregar().map((c, i) => ({ ...c, indice: i }));
+    
+    // Aplicar filtros
+    const hoje = new Date().toISOString().split('T')[0];
+    const dataHoje = new Date(hoje);
+    const fimSemana = new Date(dataHoje);
+    fimSemana.setDate(fimSemana.getDate() + 7);
+    const fimSemanaStr = fimSemana.toISOString().split('T')[0];
+    
+    switch(filtroAtivo) {
+        case 'pendentes':
+            compromissos = compromissos.filter(c => !c.concluido);
+            break;
+        case 'concluidos':
+            compromissos = compromissos.filter(c => c.concluido);
+            break;
+        case 'hoje':
+            compromissos = compromissos.filter(c => c.data === hoje);
+            break;
+        case 'semana':
+            compromissos = compromissos.filter(c => c.data >= hoje && c.data <= fimSemanaStr);
+            break;
+    }
+    
+    // Ordenar por data e hora
+    compromissos.sort((a, b) => {
+        const dataA = a.data + (a.hora || '00:00');
+        const dataB = b.data + (b.hora || '00:00');
+        return dataA.localeCompare(dataB);
+    });
+    
+    elementos.listaCompromissos.innerHTML = '';
+    
+    if (compromissos.length === 0) {
+        elementos.listaCompromissos.innerHTML = '<div class="mensagem-vazia">Nenhum compromisso encontrado</div>';
+        return;
+    }
+    
+    compromissos.forEach(comp => {
+        const item = document.createElement('div');
+        item.className = 'compromisso-item' + (comp.concluido ? ' concluido' : '');
+        
+        const badgePrioridade = `<span class="badge badge-${comp.prioridade}">${comp.prioridade.toUpperCase()}</span>`;
+        const dataFormatada = new Date(comp.data + 'T00:00:00').toLocaleDateString('pt-BR');
+        const horaTexto = comp.hora ? ` às ${comp.hora}` : '';
+        
+        item.innerHTML = `
+            <input type="checkbox" class="checkbox-concluir" ${comp.concluido ? 'checked' : ''} 
+                   onchange="toggleConcluido(${comp.indice})">
+            <div class="compromisso-conteudo">
+                <div class="compromisso-titulo">${comp.titulo}</div>
+                <div class="compromisso-info">
+                    ${badgePrioridade}
+                    ${dataFormatada}${horaTexto}
+                </div>
+                ${comp.descricao ? `<div class="compromisso-descricao">${comp.descricao}</div>` : ''}
+            </div>
+            <div class="compromisso-acoes">
+                <button class="btn-secundario btn-pequeno" onclick="editarCompromisso(${comp.indice})">Editar</button>
+                <button class="btn-perigo btn-pequeno" onclick="excluirCompromisso(${comp.indice})">Excluir</button>
+            </div>
+        `;
+        
+        elementos.listaCompromissos.appendChild(item);
+    });
+}
+
+// ==================== FILTROS ====================
+
+document.querySelectorAll('[data-filtro]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-filtro]').forEach(b => b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+        filtroAtivo = btn.dataset.filtro;
+        renderizarCompromissos();
+    });
+});
+
+// ==================== AÇÕES ====================
+
+window.toggleConcluido = function(indice) {
+    DB_AGENDA.toggleConcluido(indice);
+    renderizarCompromissos();
+};
+
+window.editarCompromisso = function(indice) {
+    const compromissos = DB_AGENDA.carregar();
+    const comp = compromissos[indice];
+    
+    if (!comp) {
+        mostrarNotificacao('Compromisso não encontrado', 'error');
+        return;
+    }
+    
+    document.getElementById('editIndice').value = indice;
+    document.getElementById('editTitulo').value = comp.titulo;
+    document.getElementById('editData').value = comp.data;
+    document.getElementById('editHora').value = comp.hora || '';
+    document.getElementById('editPrioridade').value = comp.prioridade;
+    document.getElementById('editDescricao').value = comp.descricao || '';
+    
+    elementos.formEdicao.classList.add('ativo');
+    elementos.formularioCadastro.style.display = 'none';
+    elementos.formEdicao.scrollIntoView({ behavior: 'smooth' });
+};
+
+elementos.formEditarCompromisso.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const indice = parseInt(document.getElementById('editIndice').value);
+    const compromissoAtualizado = {
+        titulo: document.getElementById('editTitulo').value.trim(),
+        data: document.getElementById('editData').value,
+        hora: document.getElementById('editHora').value,
+        prioridade: document.getElementById('editPrioridade').value,
+        descricao: document.getElementById('editDescricao').value.trim()
+    };
+    
+    const resultado = DB_AGENDA.atualizar(indice, compromissoAtualizado);
+    
+    if (resultado.sucesso) {
+        mostrarNotificacao(resultado.mensagem, 'success');
+        cancelarEdicao();
+        renderizarCompromissos();
+    } else {
+        mostrarNotificacao(resultado.mensagem, 'error');
+    }
+});
+
+document.getElementById('btnCancelarEdicao').addEventListener('click', cancelarEdicao);
+
+function cancelarEdicao() {
+    elementos.formEdicao.classList.remove('ativo');
+    elementos.formularioCadastro.style.display = 'block';
+    elementos.formEditarCompromisso.reset();
+}
+
+window.excluirCompromisso = function(indice) {
+    const compromissos = DB_AGENDA.carregar();
+    const comp = compromissos[indice];
+    
+    if (confirm(`Deseja realmente excluir o compromisso "${comp.titulo}"?`)) {
+        const resultado = DB_AGENDA.remover(indice);
+        
+        if (resultado.sucesso) {
+            mostrarNotificacao(resultado.mensagem, 'success');
+            renderizarCompromissos();
+        } else {
+            mostrarNotificacao(resultado.mensagem, 'error');
+        }
+    }
+};
+
+// ==================== INICIALIZAÇÃO ====================
+
+renderizarCompromissos();
+
+console.log('Módulo de agenda carregado');
+</script>
+
+</body>
+</html>

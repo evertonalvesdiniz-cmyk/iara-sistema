@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Módulo Financeiro</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Poppins', Arial, sans-serif; padding: 30px; background: rgba(255, 255, 255, 0.95); min-height: 100vh; }
+h2 { color: #2c3e50; margin-bottom: 25px; font-size: 24px; }
+h3 { color: #4a5568; margin: 20px 0 15px; font-size: 18px; }
+
+.tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; }
+.tab-button { padding: 12px 24px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+.tab-button:hover { color: #2c3e50; }
+.tab-button.ativo { color: #2c3e50; border-bottom-color: #ccbfb5; }
+.tab-conteudo { display: none; }
+.tab-conteudo.ativo { display: block; }
+
+.card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+.card-titulo { font-size: 18px; font-weight: 600; color: #2c3e50; margin-bottom: 20px; }
+
+.campo { margin-bottom: 15px; }
+.campo label { display: block; margin-bottom: 5px; color: #4a5568; font-size: 14px; font-weight: 500; }
+.campo input, .campo select { width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+
+.linha-dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+button { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+.btn-primario { background-color: #2c3e50; color: white; }
+.btn-primario:hover { background-color: #1a252f; }
+.btn-secundario { background-color: #ccbfb5; color: #2c3e50; }
+.btn-sucesso { background-color: #48bb78; color: white; }
+.btn-perigo { background-color: #e53e3e; color: white; }
+.btn-info { background-color: #4299e1; color: white; }
+.btn-warning { background-color: #ed8936; color: white; }
+.btn-pequeno { padding: 6px 12px; font-size: 12px; white-space: nowrap; }
+
+.resumo-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+.resumo-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; color: white; text-align: center; }
+.resumo-card.verde { background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); }
+.resumo-card.laranja { background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%); }
+.resumo-card.vermelho { background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%); }
+.resumo-label { font-size: 13px; opacity: 0.9; margin-bottom: 10px; }
+.resumo-valor { font-size: 28px; font-weight: 700; }
+
+/* Estrutura Hierárquica */
+.venda-container { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; overflow: hidden; }
+.venda-header { padding: 20px; background: #f7fafc; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s; border-left: 4px solid #4299e1; }
+.venda-header:hover { background: #edf2f7; }
+.venda-header.parcial { border-left-color: #ed8936; }
+.venda-header.concluido { border-left-color: #48bb78; opacity: 0.7; }
+
+.venda-info-principal { flex: 1; }
+.venda-numero { font-weight: 700; color: #2c3e50; font-size: 16px; margin-bottom: 5px; }
+.venda-resumo { font-size: 13px; color: #718096; margin-top: 5px; }
+.venda-acoes-principais { display: flex; gap: 8px; align-items: center; }
+
+.badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 10px; }
+.badge-pendente { background: #feebc8; color: #c05621; }
+.badge-parcial { background: #fed7d7; color: #c53030; }
+.badge-recebido { background: #c6f6d5; color: #22543d; }
+.badge-pago { background: #c6f6d5; color: #22543d; }
+.badge-aguardando { background: #fef3c7; color: #92400e; }
+
+.toggle-icon { font-size: 20px; transition: transform 0.3s; margin-left: 10px; }
+.toggle-icon.expandido { transform: rotate(90deg); }
+
+/* Produtos (Subitens) */
+.produtos-lista { display: none; padding: 0; background: white; }
+.produtos-lista.expandido { display: block; }
+
+.produto-item { padding: 20px; border-top: 1px solid #e2e8f0; background: white; transition: background 0.2s; display: flex; gap: 20px; align-items: start; }
+.produto-item:hover { background: #f7fafc; }
+.produto-item.concluido { opacity: 0.6; }
+
+.produto-checkbox { width: 24px; height: 24px; cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+
+.produto-conteudo { flex: 1; }
+.produto-nome { font-weight: 600; color: #2c3e50; margin-bottom: 5px; }
+.produto-detalhes { font-size: 13px; color: #718096; line-height: 1.6; }
+.produto-valores { margin-top: 8px; padding: 10px; background: #f7fafc; border-radius: 6px; font-size: 12px; }
+
+.produto-acoes { display: flex; flex-direction: column; gap: 6px; }
+
+.mensagem-vazia { padding: 40px 20px; text-align: center; color: #718096; }
+
+.modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+.modal.ativo { display: flex; }
+.modal-conteudo { background: white; padding: 30px; border-radius: 16px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0; }
+.modal-header h3 { margin: 0; font-size: 18px; color: #2c3e50; }
+.btn-fechar { background: none; border: none; font-size: 24px; color: #718096; cursor: pointer; padding: 0; width: 30px; height: 30px; }
+
+.opcoes-pagamento { display: flex; flex-direction: column; gap: 8px; margin: 15px 0; }
+.opcao-pagamento { padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; }
+.opcao-pagamento:hover { border-color: #ccbfb5; background: #f7fafc; }
+.opcao-pagamento.selecionada { border-color: #2c3e50; background: #f7fafc; }
+.opcao-pagamento input[type="radio"] { width: 20px; height: 20px; }
+
+.acoes-modal { display: flex; gap: 10px; margin-top: 15px; }
+.acoes-modal button { flex: 1; }
+
+.barra-busca { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.barra-busca input { flex: 1; min-width: 200px; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+
+.info-produto-modal { background: #f7fafc; padding: 15px; border-radius: 8px; margin: 15px 0; }
+.info-produto-modal p { margin: 5px 0; font-size: 13px; color: #4a5568; }
+</style>
+</head>
+<body>
+
+<h2>Módulo Financeiro</h2>
+
+<div class="tabs">
+    <button class="tab-button ativo" data-tab="resumo">Resumo Geral</button>
+    <button class="tab-button" data-tab="receber">Contas a Receber</button>
+    <button class="tab-button" data-tab="pagar">Contas a Pagar</button>
+</div>
+
+<!-- ABA RESUMO -->
+<div class="tab-conteudo ativo" id="tab-resumo">
+    <div class="resumo-cards">
+        <div class="resumo-card vermelho">
+            <div class="resumo-label">A Pagar (Pendentes)</div>
+            <div class="resumo-valor" id="resumoAPagar">R$ 0,00</div>
+        </div>
+        
+        <div class="resumo-card laranja">
+            <div class="resumo-label">A Receber (Pendentes)</div>
+            <div class="resumo-valor" id="resumoAReceber">R$ 0,00</div>
+        </div>
+        
+        <div class="resumo-card verde">
+            <div class="resumo-label">Caixa Real</div>
+            <div class="resumo-valor" id="resumoCaixa">R$ 0,00</div>
+            <div style="font-size: 11px; margin-top: 8px; opacity: 0.9;">Recebido - Pago</div>
+        </div>
+    </div>
+    
+    <button class="btn-secundario" id="btnAtualizarResumo">Atualizar Dados</button>
+</div>
+
+<!-- ABA CONTAS A RECEBER -->
+<div class="tab-conteudo" id="tab-receber">
+    <div class="barra-busca">
+        <input type="text" id="receberBusca" placeholder="Buscar por venda, cliente, fornecedor...">
+        <button class="btn-primario" id="btnBuscarReceber">Buscar</button>
+        <button class="btn-secundario" id="btnLimparReceber">Limpar</button>
+        <button class="btn-info" id="btnToggleReceber">Mostrar Finalizadas</button>
+    </div>
+    
+    <div id="listaReceberHierarquica"></div>
+    <div class="mensagem-vazia" id="mensagemReceber" style="display: none;">Nenhuma conta encontrada</div>
+</div>
+
+<!-- ABA CONTAS A PAGAR -->
+<div class="tab-conteudo" id="tab-pagar">
+    <div class="card">
+        <div class="card-titulo">Adicionar Conta a Pagar Manual</div>
+        <form id="formContaPagar">
+            <div class="campo">
+                <label>Credor *</label>
+                <input type="text" id="pagarCredor" required>
+            </div>
+            <div class="linha-dupla">
+                <div class="campo">
+                    <label>Valor *</label>
+                    <input type="text" id="pagarValor" required>
+                </div>
+                <div class="campo">
+                    <label>Data Vencimento *</label>
+                    <input type="date" id="pagarData" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-primario">Adicionar Conta</button>
+        </form>
+    </div>
+    
+    <div class="barra-busca">
+        <input type="text" id="pagarBusca" placeholder="Buscar por venda, fornecedor, credor...">
+        <button class="btn-primario" id="btnBuscarPagar">Buscar</button>
+        <button class="btn-secundario" id="btnLimparPagar">Limpar</button>
+        <button class="btn-info" id="btnTogglePagar">Mostrar Finalizadas</button>
+    </div>
+    
+    <div id="listaPagarHierarquica"></div>
+    <div class="mensagem-vazia" id="mensagemPagar" style="display: none;">Nenhuma conta encontrada</div>
+</div>
+
+<!-- MODAL DE RECEBIMENTO POR PRODUTO -->
+<div class="modal" id="modalRecebimentoProduto">
+    <div class="modal-conteudo">
+        <div class="modal-header">
+            <h3>Confirmar Recebimento do Produto</h3>
+            <button class="btn-fechar" onclick="fecharModal('modalRecebimentoProduto')">&times;</button>
+        </div>
+        
+        <div class="info-produto-modal" id="infoProdutoModal"></div>
+        
+        <label style="display: block; margin: 10px 0 8px; color: #2c3e50; font-weight: 600; font-size: 13px;">Forma de Pagamento *</label>
+        <div class="opcoes-pagamento">
+            <label class="opcao-pagamento">
+                <input type="radio" name="formaPagamentoProduto" value="pix">
+                <div style="font-size: 13px;"><strong>PIX</strong><br><small>Cliente pagou você - Cria conta a PAGAR da tarifa</small></div>
+            </label>
+            <label class="opcao-pagamento">
+                <input type="radio" name="formaPagamentoProduto" value="boleto">
+                <div style="font-size: 13px;"><strong>Boleto</strong><br><small>Cliente pagou fornecedor - Status: Aguardando Repasse</small></div>
+            </label>
+            <label class="opcao-pagamento">
+                <input type="radio" name="formaPagamentoProduto" value="cartao">
+                <div style="font-size: 13px;"><strong>Cartão</strong><br><small>Cliente pagou fornecedor - Status: Aguardando Repasse</small></div>
+            </label>
+        </div>
+        
+        <div class="acoes-modal">
+            <button class="btn-primario" id="btnConfirmarRecebimentoProduto">Confirmar</button>
+            <button class="btn-secundario" onclick="fecharModal('modalRecebimentoProduto')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE EDIÇÃO DE DATA -->
+<div class="modal" id="modalEditarData">
+    <div class="modal-conteudo">
+        <div class="modal-header">
+            <h3>Editar Data de Vencimento</h3>
+            <button class="btn-fechar" onclick="fecharModal('modalEditarData')">&times;</button>
+        </div>
+        
+        <div class="campo">
+            <label>Nova Data *</label>
+            <input type="date" id="inputNovaData" required>
+        </div>
+        
+        <div class="acoes-modal">
+            <button class="btn-primario" id="btnSalvarData">Salvar</button>
+            <button class="btn-secundario" onclick="fecharModal('modalEditarData')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script src="utils.js"></script>
+<script src="db-clientes.js"></script>
+<script src="db-vendas.js"></script>
+<script src="db-financeiro.js"></script>
+<script>
+let produtoSelecionado = null;
+let mostrarFinalizadasReceber = false;
+let mostrarFinalizadasPagar = false;
+
+// TABS
+document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('ativo'));
+        document.querySelectorAll('.tab-conteudo').forEach(c => c.classList.remove('ativo'));
+        btn.classList.add('ativo');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('ativo');
+    });
+});
+
+aplicarMascaraMoeda(document.getElementById('pagarValor'));
+
+function fecharModal(modalId) {
+    document.getElementById(modalId).classList.remove('ativo');
+}
+
+document.querySelectorAll('input[name="formaPagamentoProduto"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        document.querySelectorAll('.opcao-pagamento').forEach(op => op.classList.remove('selecionada'));
+        e.target.closest('.opcao-pagamento').classList.add('selecionada');
+    });
+});
+
+// ==================== RESUMO GERAL ====================
+
+function atualizarResumoGeral() {
+    const contasPagarPendentes = DB_FINANCEIRO.buscarContasPagar('', '', 'pendente');
+    const totalAPagar = contasPagarPendentes.reduce((sum, c) => sum + c.valor, 0);
+    
+    const todasContas = DB_FINANCEIRO.buscarContasReceber('', '', 'todos');
+    let totalAReceber = 0;
+    let totalAguardandoRepasse = 0;
+    
+    todasContas.forEach(conta => {
+        if (conta.tipo === 'venda' && conta.subitens) {
+            conta.subitens.forEach(subitem => {
+                if (subitem.status === 'pendente') {
+                    if (subitem.formaPagamento === 'pix' || !subitem.formaPagamento) {
+                        totalAReceber += subitem.valorTotal;
+                    } else {
+                        totalAReceber += subitem.taxa;
+                    }
+                } else if (subitem.status === 'aguardando_repasse') {
+                    totalAguardandoRepasse += subitem.taxa;
+                }
+            });
+        } else if (conta.tipo === 'repasse' && conta.status === 'pendente') {
+            totalAReceber += conta.valor;
+        }
+    });
+    
+    const totaisReceber = DB_FINANCEIRO.calcularTotaisContasReceber('', '');
+    const totaisPagar = DB_FINANCEIRO.calcularTotaisContasPagar('', '');
+    
+    const caixa = totaisReceber.recebidas - totaisPagar.pagas;
+    
+    document.getElementById('resumoAPagar').textContent = formatarMoedaBR(totalAPagar);
+    document.getElementById('resumoAReceber').textContent = formatarMoedaBR(totalAReceber + totalAguardandoRepasse);
+    document.getElementById('resumoCaixa').textContent = formatarMoedaBR(caixa);
+    
+    if (totalAguardandoRepasse > 0) {
+        document.querySelector('#tab-resumo .resumo-card.laranja .resumo-label').innerHTML = 
+            `A Receber (Pendentes)<br><small style="font-size: 11px; opacity: 0.8;">Aguardando: ${formatarMoedaBR(totalAguardandoRepasse)}</small>`;
+    }
+}
+
+document.getElementById('btnAtualizarResumo').addEventListener('click', () => {
+    atualizarResumoGeral();
+    mostrarNotificacao('Dados atualizados', 'success');
+});
+
+// ==================== CONTAS A RECEBER (HIERÁRQUICO) ====================
+
+function renderizarContasReceberHierarquicas(contas) {
+    const container = document.getElementById('listaReceberHierarquica');
+    const mensagem = document.getElementById('mensagemReceber');
+    container.innerHTML = '';
+    
+    if (!contas || contas.length === 0) {
+        container.style.display = 'none';
+        mensagem.style.display = 'block';
+        return;
+    }
+    
+    container.style.display = 'block';
+    mensagem.style.display = 'none';
+    
+    contas.forEach(conta => {
+        const vendaDiv = document.createElement('div');
+        vendaDiv.className = 'venda-container';
+        
+        let statusClass = '';
+        let statusBadge = '';
+        if (conta.status === 'recebido') {
+            statusClass = 'concluido';
+            statusBadge = '<span class="badge badge-recebido">RECEBIDO</span>';
+        } else if (conta.status === 'parcial') {
+            statusClass = 'parcial';
+            const finalizados = conta.subitens.filter(s => s.status === 'recebido' || s.status === 'aguardando_repasse').length;
+            statusBadge = `<span class="badge badge-parcial">PARCIAL ${finalizados}/${conta.subitens.length}</span>`;
+        } else {
+            statusBadge = '<span class="badge badge-pendente">PENDENTE</span>';
+        }
+        
+        const header = document.createElement('div');
+        header.className = `venda-header ${statusClass}`;
+        header.innerHTML = `
+            <div class="venda-info-principal">
+                <div class="venda-numero">
+                    Venda #${conta.vendaNumero} - ${conta.devedor}
+                    ${statusBadge}
+                </div>
+                <div class="venda-resumo">
+                    Valor Total: <strong>${formatarMoedaBR(conta.valor)}</strong> 
+                    | Lucro: <strong style="color: #48bb78;">${formatarMoedaBR(conta.lucroTotal)}</strong>
+                    | Produtos: ${conta.subitens?.length || 0}
+                </div>
+            </div>
+            <div class="venda-acoes-principais">
+                <span class="toggle-icon">▶</span>
+            </div>
+        `;
+        
+        const produtosLista = document.createElement('div');
+        produtosLista.className = 'produtos-lista';
+        
+        if (conta.subitens && conta.subitens.length > 0) {
+            conta.subitens.forEach((subitem, subIdx) => {
+                const produtoDiv = document.createElement('div');
+                produtoDiv.className = `produto-item ${subitem.status === 'recebido' ? 'concluido' : ''}`;
+                
+                let statusProdutoBadge = '';
+                let acoesProduto = '';
+                
+                if (subitem.status === 'recebido') {
+                    statusProdutoBadge = `<span class="badge badge-recebido">✓ ${subitem.formaPagamento?.toUpperCase()} - RECEBIDO</span>`;
+                    acoesProduto = `
+                        <button class="btn-warning btn-pequeno" onclick="cancelarRecebimentoProduto('${conta.vendaNumero}', ${subIdx})">
+                            Cancelar
+                        </button>
+                    `;
+                } else if (subitem.status === 'aguardando_repasse') {
+                    statusProdutoBadge = `<span class="badge badge-aguardando">⏳ AGUARDANDO REPASSE</span>`;
+                    acoesProduto = `
+                        <button class="btn-sucesso btn-pequeno" onclick="confirmarRepasseFornecedor('${conta.vendaNumero}', ${subIdx})">
+                            Confirmar Repasse
+                        </button>
+                        <button class="btn-warning btn-pequeno" onclick="cancelarRecebimentoProduto('${conta.vendaNumero}', ${subIdx})">
+                            Cancelar
+                        </button>
+                    `;
+                } else {
+                    statusProdutoBadge = '<span class="badge badge-pendente">PENDENTE</span>';
+                    acoesProduto = `
+                        <button class="btn-sucesso btn-pequeno" onclick="abrirModalRecebimentoProduto('${conta.vendaNumero}', ${subIdx}, ${conta.indice})">
+                            Receber
+                        </button>
+                    `;
+                }
+                
+                let infoAdicional = '';
+                if (subitem.dataConfirmacaoPagamento && subitem.status === 'aguardando_repasse') {
+                    infoAdicional = `<br><small style="color: #92400e;">Cliente pagou em: ${subitem.dataConfirmacaoPagamento}</small>`;
+                } else if (subitem.dataRecebimento && subitem.status === 'recebido') {
+                    infoAdicional = `<br><small style="color: #22543d;">Recebido em: ${subitem.dataRecebimento}</small>`;
+                }
+                
+                produtoDiv.innerHTML = `
+                    <input type="checkbox" class="produto-checkbox" ${subitem.status === 'recebido' ? 'checked' : ''} disabled>
+                    <div class="produto-conteudo">
+                        <div class="produto-nome">
+                            ${subitem.produtoNome}
+                            ${statusProdutoBadge}
+                        </div>
+                        <div class="produto-detalhes">
+                            <strong>Fornecedor:</strong> ${subitem.fornecedor}
+                            ${subitem.localizador ? ` | <strong>Localizador:</strong> ${subitem.localizador}` : ''}
+                            ${infoAdicional}
+                        </div>
+                        <div class="produto-valores">
+                            <strong>Valor Cliente:</strong> ${formatarMoedaBR(subitem.valorTotal)} 
+                            <span style="color: #718096;">(Tarifa: ${formatarMoedaBR(subitem.tarifa)} + Taxa: ${formatarMoedaBR(subitem.taxa)})</span>
+                            <br><strong style="color: #48bb78;">Seu Lucro:</strong> ${formatarMoedaBR(subitem.taxa)}
+                        </div>
+                    </div>
+                    <div class="produto-acoes">
+                        ${acoesProduto}
+                    </div>
+                `;
+                
+                produtosLista.appendChild(produtoDiv);
+            });
+        }
+        
+        header.addEventListener('click', () => {
+            produtosLista.classList.toggle('expandido');
+            header.querySelector('.toggle-icon').classList.toggle('expandido');
+        });
+        
+        vendaDiv.appendChild(header);
+        vendaDiv.appendChild(produtosLista);
+        container.appendChild(vendaDiv);
+    });
+}
+
+function filtrarContasReceber(termoBusca = '') {
+    const status = mostrarFinalizadasReceber ? 'todos' : 'pendente';
+    let contas = DB_FINANCEIRO.buscarContasReceber('', '', status);
+    
+    contas = contas.filter(c => c.tipo === 'venda');
+    
+    // Se NÃO está mostrando finalizadas, inclui também as PARCIAIS
+    if (!mostrarFinalizadasReceber) {
+        const todasContas = DB_FINANCEIRO.buscarContasReceber('', '', 'todos');
+        const contasParciais = todasContas.filter(c => c.tipo === 'venda' && c.status === 'parcial');
+        
+        // Adiciona parciais às pendentes (sem duplicar)
+        contasParciais.forEach(parcial => {
+            if (!contas.find(c => c.vendaNumero === parcial.vendaNumero)) {
+                contas.push(parcial);
+            }
+        });
+    }
+    
+    if (termoBusca) {
+        contas = contas.filter(c => {
+            const busca = termoBusca.toLowerCase();
+            return (
+                (c.vendaNumero && c.vendaNumero.toLowerCase().includes(busca)) ||
+                (c.devedor && c.devedor.toLowerCase().includes(busca)) ||
+                (c.subitens && c.subitens.some(s => 
+                    s.fornecedor.toLowerCase().includes(busca) ||
+                    (s.localizador && s.localizador.toLowerCase().includes(busca)) ||
+                    s.produtoNome.toLowerCase().includes(busca)
+                ))
+            );
+        });
+    }
+    
+    renderizarContasReceberHierarquicas(contas);
+}
+
+document.getElementById('btnToggleReceber').addEventListener('click', () => {
+    mostrarFinalizadasReceber = !mostrarFinalizadasReceber;
+    document.getElementById('btnToggleReceber').textContent = 
+        mostrarFinalizadasReceber ? 'Ocultar Finalizadas' : 'Mostrar Finalizadas';
+    filtrarContasReceber(document.getElementById('receberBusca').value.trim());
+});
+
+document.getElementById('btnBuscarReceber').addEventListener('click', () => {
+    const termo = document.getElementById('receberBusca').value.trim();
+    filtrarContasReceber(termo);
+});
+
+document.getElementById('btnLimparReceber').addEventListener('click', () => {
+    document.getElementById('receberBusca').value = '';
+    filtrarContasReceber();
+});
+
+document.getElementById('receberBusca').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.getElementById('btnBuscarReceber').click();
+    }
+});
+
+// ==================== MODAL RECEBIMENTO POR PRODUTO ====================
+
+function abrirModalRecebimentoProduto(vendaNumero, indiceSubitem, indiceContaPrincipal) {
+    produtoSelecionado = { vendaNumero, indiceSubitem, indiceContaPrincipal };
+    
+    const conta = DB_FINANCEIRO.buscarContasReceber('', '', 'todos')[indiceContaPrincipal];
+    const subitem = conta.subitens[indiceSubitem];
+    
+    document.getElementById('infoProdutoModal').innerHTML = `
+        <p><strong>Venda:</strong> #${vendaNumero}</p>
+        <p><strong>Cliente:</strong> ${conta.devedor}</p>
+        <p><strong>Produto:</strong> ${subitem.produtoNome}</p>
+        <p><strong>Fornecedor:</strong> ${subitem.fornecedor}</p>
+        ${subitem.localizador ? `<p><strong>Localizador:</strong> ${subitem.localizador}</p>` : ''}
+        <p><strong>Valor Total:</strong> ${formatarMoedaBR(subitem.valorTotal)}</p>
+        <p><strong>Tarifa:</strong> ${formatarMoedaBR(subitem.tarifa)} | <strong style="color: #48bb78;">Seu Lucro:</strong> ${formatarMoedaBR(subitem.taxa)}</p>
+    `;
+    
+    document.getElementById('modalRecebimentoProduto').classList.add('ativo');
+    document.querySelectorAll('input[name="formaPagamentoProduto"]').forEach(r => r.checked = false);
+    document.querySelectorAll('.opcao-pagamento').forEach(op => op.classList.remove('selecionada'));
+}
+
+document.getElementById('btnConfirmarRecebimentoProduto').addEventListener('click', () => {
+    if (!produtoSelecionado) return;
+    
+    const formaPagamento = document.querySelector('input[name="formaPagamentoProduto"]:checked');
+    
+    if (!formaPagamento) {
+        mostrarNotificacao('Selecione a forma de pagamento', 'warning');
+        return;
+    }
+    
+    const resultado = DB_FINANCEIRO.confirmarRecebimentoProduto(
+        produtoSelecionado.vendaNumero,
+        produtoSelecionado.indiceSubitem,
+        formaPagamento.value
+    );
+    
+    if (resultado.sucesso) {
+        mostrarNotificacao(resultado.mensagem, 'success', 6000);
+        fecharModal('modalRecebimentoProduto');
+        filtrarContasReceber();
+        filtrarContasPagar();
+        atualizarResumoGeral();
+    } else {
+        mostrarNotificacao(resultado.mensagem, 'error');
+    }
+});
+
+window.cancelarRecebimentoProduto = function(vendaNumero, indiceSubitem) {
+    if (confirm('Cancelar recebimento deste produto?\n\nRemoverá as contas relacionadas.')) {
+        const resultado = DB_FINANCEIRO.cancelarRecebimentoProduto(vendaNumero, indiceSubitem);
+        if (resultado.sucesso) {
+            mostrarNotificacao(resultado.mensagem, 'success');
+            filtrarContasReceber();
+            filtrarContasPagar();
+            atualizarResumoGeral();
+        } else {
+            mostrarNotificacao(resultado.mensagem, 'error');
+        }
+    }
+};
+
+window.confirmarRepasseFornecedor = function(vendaNumero, indiceSubitem) {
+    if (confirm('Confirmar que o fornecedor repassou seu lucro?\n\nO valor será creditado no caixa.')) {
+        const resultado = DB_FINANCEIRO.confirmarRepasseFornecedor(vendaNumero, indiceSubitem);
+        if (resultado.sucesso) {
+            mostrarNotificacao(resultado.mensagem, 'success');
+            filtrarContasReceber();
+            atualizarResumoGeral();
+        } else {
+            mostrarNotificacao(resultado.mensagem, 'error');
+        }
+    }
+};
+
+// ==================== CONTAS A PAGAR (HIERÁRQUICO) ====================
+
+document.getElementById('formContaPagar').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const conta = {
+        credor: document.getElementById('pagarCredor').value,
+        valor: document.getElementById('pagarValor').value,
+        data: document.getElementById('pagarData').value
+    };
+    
+    const resultado = DB_FINANCEIRO.adicionarContaPagar(conta);
+    
+    if (resultado.sucesso) {
+        mostrarNotificacao(resultado.mensagem, 'success');
+        document.getElementById('formContaPagar').reset();
+        filtrarContasPagar();
+        atualizarResumoGeral();
+    } else {
+        mostrarNotificacao(resultado.mensagem, 'error');
+    }
+});
+
+function renderizarContasPagarHierarquicas(contas) {
+    const container = document.getElementById('listaPagarHierarquica');
+    const mensagem = document.getElementById('mensagemPagar');
+    container.innerHTML = '';
+    
+    if (!contas || contas.length === 0) {
+        container.style.display = 'none';
+        mensagem.style.display = 'block';
+        return;
+    }
+    
+    container.style.display = 'block';
+    mensagem.style.display = 'none';
+    
+    const contasPorVenda = {};
+    const contasAvulsas = [];
+    
+    contas.forEach(conta => {
+        if (conta.vendaNumero && conta.origem === 'venda_pix') {
+            if (!contasPorVenda[conta.vendaNumero]) {
+                contasPorVenda[conta.vendaNumero] = [];
+            }
+            contasPorVenda[conta.vendaNumero].push(conta);
+        } else {
+            contasAvulsas.push(conta);
+        }
+    });
+    
+    Object.keys(contasPorVenda).forEach(vendaNumero => {
+        const contasVenda = contasPorVenda[vendaNumero];
+        const totalVenda = contasVenda.reduce((sum, c) => sum + c.valor, 0);
+        const todasPagas = contasVenda.every(c => c.status === 'pago');
+        const algunsPagos = contasVenda.some(c => c.status === 'pago');
+        
+        let statusClass = '';
+        let statusBadge = '';
+        let statusGeral = 'pendente';
+        
+        if (todasPagas) {
+            statusClass = 'concluido';
+            statusBadge = '<span class="badge badge-pago">PAGO</span>';
+            statusGeral = 'pago';
+        } else if (algunsPagos) {
+            statusClass = 'parcial';
+            const pagosCont = contasVenda.filter(c => c.status === 'pago').length;
+            statusBadge = `<span class="badge badge-parcial">PARCIAL ${pagosCont}/${contasVenda.length}</span>`;
+            statusGeral = 'parcial';
+        } else {
+            statusBadge = '<span class="badge badge-pendente">PENDENTE</span>';
+        }
+        
+        const vendaDiv = document.createElement('div');
+        vendaDiv.className = 'venda-container';
+        
+        const header = document.createElement('div');
+        header.className = `venda-header ${statusClass}`;
+        header.innerHTML = `
+            <div class="venda-info-principal">
+                <div class="venda-numero">
+                    Venda #${vendaNumero} - Pagamentos PIX
+                    ${statusBadge}
+                </div>
+                <div class="venda-resumo">
+                    Valor Total: <strong>${formatarMoedaBR(totalVenda)}</strong> 
+                    | Fornecedores: ${contasVenda.length}
+                </div>
+            </div>
+            <div class="venda-acoes-principais">
+                ${statusGeral === 'pendente' ? `<button class="btn-sucesso btn-pequeno" onclick="pagarTodosVenda('${vendaNumero}')">Pagar Todos</button>` : ''}
+                <span class="toggle-icon">▶</span>
+            </div>
+        `;
+        
+        const produtosLista = document.createElement('div');
+        produtosLista.className = 'produtos-lista';
+        
+        contasVenda.forEach((conta) => {
+            const produtoDiv = document.createElement('div');
+            produtoDiv.className = `produto-item ${conta.status === 'pago' ? 'concluido' : ''}`;
+            
+            const statusProdutoBadge = conta.status === 'pago' 
+                ? '<span class="badge badge-pago">✓ PAGO</span>'
+                : '<span class="badge badge-pendente">PENDENTE</span>';
+            
+            let acoesProduto = '';
+            if (conta.status === 'pendente') {
+                acoesProduto = `
+                    <button class="btn-sucesso btn-pequeno" onclick="pagarConta(${conta.indice})">Pagar</button>
+                    <button class="btn-secundario btn-pequeno" onclick="editarDataVencimento(${conta.indice})">Editar Data</button>
+                `;
+            } else {
+                acoesProduto = `
+                    <span style="font-size: 11px; color: #48bb78;">Pago em ${conta.dataPagamento}</span>
+                `;
+            }
+            
+            produtoDiv.innerHTML = `
+                <input type="checkbox" class="produto-checkbox" ${conta.status === 'pago' ? 'checked' : ''} disabled>
+                <div class="produto-conteudo">
+                    <div class="produto-nome">
+                        ${conta.produtoNome || 'Produto'}
+                        ${statusProdutoBadge}
+                    </div>
+                    <div class="produto-detalhes">
+                        <strong>Fornecedor:</strong> ${conta.credor}
+                        ${conta.localizador ? ` | <strong>Localizador:</strong> ${conta.localizador}` : ''}
+                        | <strong>Vencimento:</strong> ${conta.data}
+                    </div>
+                    <div class="produto-valores">
+                        <strong>Valor a Pagar:</strong> ${formatarMoedaBR(conta.valor)}
+                    </div>
+                </div>
+                <div class="produto-acoes">
+                    ${acoesProduto}
+                </div>
+            `;
+            
+            produtosLista.appendChild(produtoDiv);
+        });
+        
+        header.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
+            produtosLista.classList.toggle('expandido');
+            header.querySelector('.toggle-icon').classList.toggle('expandido');
+        });
+        
+        vendaDiv.appendChild(header);
+        vendaDiv.appendChild(produtosLista);
+        container.appendChild(vendaDiv);
+    });
+    
+    contasAvulsas.forEach(conta => {
+        const vendaDiv = document.createElement('div');
+        vendaDiv.className = 'venda-container';
+        
+        const statusClass = conta.status === 'pago' ? 'concluido' : '';
+        const statusBadge = conta.status === 'pago' 
+            ? '<span class="badge badge-pago">PAGO</span>'
+            : '<span class="badge badge-pendente">PENDENTE</span>';
+        
+        let acoes = '';
+        if (conta.status === 'pendente') {
+            acoes = `
+                <button class="btn-sucesso btn-pequeno" onclick="pagarConta(${conta.indice})">Pagar</button>
+                ${conta.origem === 'manual' ? `<button class="btn-perigo btn-pequeno" onclick="excluirContaPagar(${conta.indice})">Excluir</button>` : ''}
+            `;
+        } else {
+            acoes = `<span style="font-size: 11px; color: #48bb78;">Pago em ${conta.dataPagamento}</span>`;
+        }
+        
+        const header = document.createElement('div');
+        header.className = `venda-header ${statusClass}`;
+        header.innerHTML = `
+            <div class="venda-info-principal">
+                <div class="venda-numero">
+                    ${conta.credor}
+                    ${statusBadge}
+                </div>
+                <div class="venda-resumo">
+                    Valor: <strong>${formatarMoedaBR(conta.valor)}</strong> 
+                    | Vencimento: ${conta.data}
+                    ${conta.origem === 'manual' ? ' | <em>Manual</em>' : ''}
+                </div>
+            </div>
+            <div class="venda-acoes-principais">
+                ${acoes}
+            </div>
+        `;
+        
+        vendaDiv.appendChild(header);
+        container.appendChild(vendaDiv);
+    });
+}
+
+function filtrarContasPagar(termoBusca = '') {
+    const status = mostrarFinalizadasPagar ? 'todos' : 'pendente';
+    let contas = DB_FINANCEIRO.buscarContasPagar('', '', status);
+    
+    // Se NÃO está mostrando finalizadas, inclui também as PARCIAIS
+    if (!mostrarFinalizadasPagar) {
+        const todasContas = DB_FINANCEIRO.buscarContasPagar('', '', 'todos');
+        const contasParciais = todasContas.filter(c => c.status === 'parcial');
+        
+        // Adiciona parciais às pendentes (sem duplicar)
+        contasParciais.forEach(parcial => {
+            if (!contas.find(c => c.id === parcial.id)) {
+                contas.push(parcial);
+            }
+        });
+    }
+    
+    if (termoBusca) {
+        contas = contas.filter(c => {
+            const busca = termoBusca.toLowerCase();
+            return (
+                (c.vendaNumero && c.vendaNumero.toLowerCase().includes(busca)) ||
+                (c.credor && c.credor.toLowerCase().includes(busca)) ||
+                (c.produtoNome && c.produtoNome.toLowerCase().includes(busca)) ||
+                (c.localizador && c.localizador.toLowerCase().includes(busca))
+            );
+        });
+    }
+    
+    renderizarContasPagarHierarquicas(contas);
+}
+
+document.getElementById('btnTogglePagar').addEventListener('click', () => {
+    mostrarFinalizadasPagar = !mostrarFinalizadasPagar;
+    document.getElementById('btnTogglePagar').textContent = 
+        mostrarFinalizadasPagar ? 'Ocultar Finalizadas' : 'Mostrar Finalizadas';
+    filtrarContasPagar(document.getElementById('pagarBusca').value.trim());
+});
+
+document.getElementById('btnBuscarPagar').addEventListener('click', () => {
+    const termo = document.getElementById('pagarBusca').value.trim();
+    filtrarContasPagar(termo);
+});
+
+document.getElementById('btnLimparPagar').addEventListener('click', () => {
+    document.getElementById('pagarBusca').value = '';
+    filtrarContasPagar();
+});
+
+document.getElementById('pagarBusca').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.getElementById('btnBuscarPagar').click();
+    }
+});
+
+window.pagarConta = function(indice) {
+    if (confirm('Confirmar pagamento desta conta?\n\nO valor será debitado do caixa.')) {
+        const resultado = DB_FINANCEIRO.marcarContaPaga(indice);
+        if (resultado.sucesso) {
+            mostrarNotificacao(resultado.mensagem, 'success');
+            filtrarContasPagar();
+            atualizarResumoGeral();
+        } else {
+            mostrarNotificacao(resultado.mensagem, 'error');
+        }
+    }
+};
+
+window.pagarTodosVenda = function(vendaNumero) {
+    if (confirm(`Confirmar pagamento de TODOS os fornecedores da venda #${vendaNumero}?`)) {
+        const contas = DB_FINANCEIRO.buscarContasPagar('', '', 'pendente');
+        const contasVenda = contas.filter(c => c.vendaNumero === vendaNumero && c.status === 'pendente');
+        
+        let sucessos = 0;
+        contasVenda.forEach(conta => {
+            const resultado = DB_FINANCEIRO.marcarContaPaga(conta.indice);
+            if (resultado.sucesso) sucessos++;
+        });
+        
+        if (sucessos > 0) {
+            mostrarNotificacao(`${sucessos} pagamento(s) confirmado(s)`, 'success');
+            filtrarContasPagar();
+            atualizarResumoGeral();
+        }
+    }
+};
+
+window.excluirContaPagar = function(indice) {
+    if (confirm('Excluir esta conta?')) {
+        const resultado = DB_FINANCEIRO.removerContaPagar(indice);
+        if (resultado.sucesso) {
+            mostrarNotificacao(resultado.mensagem, 'success');
+            filtrarContasPagar();
+            atualizarResumoGeral();
+        } else {
+            mostrarNotificacao(resultado.mensagem, 'error');
+        }
+    }
+};
+
+// ==================== EDITAR DATA DE VENCIMENTO ====================
+
+let contaEditandoData = null;
+
+window.editarDataVencimento = function(indice) {
+    contaEditandoData = indice;
+    const conta = DB_FINANCEIRO.buscarContasPagar('', '', 'todos')[indice];
+    
+    if (conta) {
+        document.getElementById('inputNovaData').value = conta.data;
+        document.getElementById('modalEditarData').classList.add('ativo');
+    }
+};
+
+document.getElementById('btnSalvarData').addEventListener('click', () => {
+    if (contaEditandoData === null) return;
+    
+    const novaData = document.getElementById('inputNovaData').value;
+    
+    if (!novaData) {
+        mostrarNotificacao('Selecione uma data', 'warning');
+        return;
+    }
+    
+    const dados = DB_FINANCEIRO.carregar();
+    
+    if (contaEditandoData < 0 || contaEditandoData >= dados.contasPagar.length) {
+        mostrarNotificacao('Conta não encontrada', 'error');
+        return;
+    }
+    
+    dados.contasPagar[contaEditandoData].data = novaData;
+    
+    if (DB_FINANCEIRO.salvar(dados)) {
+        mostrarNotificacao('Data atualizada com sucesso', 'success');
+        fecharModal('modalEditarData');
+        filtrarContasPagar();
+    } else {
+        mostrarNotificacao('Erro ao atualizar data', 'error');
+    }
+});
+
+// ==================== INICIALIZAÇÃO ====================
+
+atualizarResumoGeral();
+filtrarContasPagar();
+filtrarContasReceber();
+
+console.log('Módulo financeiro HIERÁRQUICO carregado - Gestão por produto/fornecedor');
+</script>
+
+</body>
+</html>

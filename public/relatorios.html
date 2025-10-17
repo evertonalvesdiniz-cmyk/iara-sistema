@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatórios Gerenciais</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Poppins', Arial, sans-serif; padding: 30px; background: rgba(255, 255, 255, 0.95); min-height: 100vh; }
+h2 { color: #2c3e50; margin-bottom: 25px; font-size: 24px; }
+h3 { color: #4a5568; margin: 20px 0 15px; font-size: 18px; }
+
+.card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+.card-titulo { font-size: 18px; font-weight: 600; color: #2c3e50; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+
+.filtros-container { background: #f7fafc; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+.filtros-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+.campo { margin-bottom: 0; }
+.campo label { display: block; margin-bottom: 5px; color: #4a5568; font-size: 13px; font-weight: 600; }
+.campo input, .campo select { width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+
+button { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+.btn-primario { background-color: #2c3e50; color: white; }
+.btn-primario:hover { background-color: #1a252f; }
+.btn-secundario { background-color: #ccbfb5; color: #2c3e50; }
+.btn-sucesso { background-color: #48bb78; color: white; }
+.btn-info { background-color: #4299e1; color: white; }
+.btn-warning { background-color: #ed8936; color: white; }
+.btn-pequeno { padding: 6px 12px; font-size: 12px; }
+
+.acoes-filtro { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+.acoes-filtro button { flex: 1; min-width: 150px; }
+
+.resumo-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+.resumo-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; color: white; text-align: center; }
+.resumo-card.verde { background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); }
+.resumo-card.laranja { background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%); }
+.resumo-card.vermelho { background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%); }
+.resumo-card.azul { background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%); }
+.resumo-card.roxo { background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%); }
+.resumo-label { font-size: 12px; opacity: 0.9; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.resumo-valor { font-size: 24px; font-weight: 700; margin-bottom: 5px; }
+.resumo-subtexto { font-size: 11px; opacity: 0.8; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th { background: #f7fafc; padding: 12px 10px; text-align: left; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e2e8f0; font-size: 13px; position: sticky; top: 0; }
+td { padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+tr:hover { background: #f7fafc; }
+.tabela-container { max-height: 400px; overflow-y: auto; border-radius: 8px; border: 1px solid #e2e8f0; }
+
+.badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-sucesso { background: #c6f6d5; color: #22543d; }
+.badge-alerta { background: #feebc8; color: #c05621; }
+.badge-info { background: #bee3f8; color: #2c5282; }
+
+.grafico-container { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+.grafico-barra { display: flex; align-items: center; margin-bottom: 12px; }
+.grafico-label { width: 150px; font-size: 13px; color: #4a5568; font-weight: 500; }
+.grafico-barra-visual { flex: 1; height: 28px; background: #e2e8f0; border-radius: 6px; position: relative; overflow: hidden; }
+.grafico-barra-preenchida { height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 6px; transition: width 0.5s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; }
+.grafico-valor { color: white; font-size: 12px; font-weight: 600; white-space: nowrap; }
+
+.mensagem-vazia { padding: 40px 20px; text-align: center; color: #718096; background: #f7fafc; border-radius: 8px; }
+
+.tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab-button { padding: 12px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: #718096; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+.tab-button:hover { color: #2c3e50; }
+.tab-button.ativo { color: #2c3e50; border-bottom-color: #ccbfb5; }
+.tab-conteudo { display: none; }
+.tab-conteudo.ativo { display: block; }
+
+.alerta-info { background: #e6fffa; border-left: 4px solid #38b2ac; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #234e52; font-size: 13px; line-height: 1.6; }
+
+.ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #e2e8f0; }
+.ranking-item:last-child { border-bottom: none; }
+.ranking-posicao { width: 30px; height: 30px; background: #4299e1; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+.ranking-posicao.ouro { background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%); }
+.ranking-posicao.prata { background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%); }
+.ranking-posicao.bronze { background: linear-gradient(135deg, #d69e2e 0%, #b7791f 100%); }
+.ranking-info { flex: 1; margin-left: 15px; }
+.ranking-nome { font-weight: 600; color: #2c3e50; }
+.ranking-detalhe { font-size: 12px; color: #718096; }
+.ranking-valor { font-weight: 700; color: #2c3e50; font-size: 16px; }
+
+@media print {
+    body { padding: 0; background: white; }
+    .filtros-container, .acoes-filtro, button, .tabs { display: none !important; }
+    .card { box-shadow: none; page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<h2>📊 Relatórios Gerenciais</h2>
+
+<!-- Filtros Globais -->
+<div class="filtros-container">
+    <div class="filtros-grid">
+        <div class="campo">
+            <label>📅 Período</label>
+            <select id="filtroPeriodo">
+                <option value="hoje">Hoje</option>
+                <option value="semana">Última Semana</option>
+                <option value="mes" selected>Último Mês</option>
+                <option value="trimestre">Último Trimestre</option>
+                <option value="semestre">Último Semestre</option>
+                <option value="ano">Este Ano</option>
+                <option value="personalizado">Personalizado</option>
+            </select>
+        </div>
+        
+        <div class="campo" id="dataInicioContainer" style="display: none;">
+            <label>Data Início</label>
+            <input type="date" id="dataInicio">
+        </div>
+        
+        <div class="campo" id="dataFimContainer" style="display: none;">
+            <label>Data Fim</label>
+            <input type="date" id="dataFim">
+        </div>
+        
+        <div class="campo">
+            <label>👤 Cliente</label>
+            <select id="filtroCliente">
+                <option value="">Todos os Clientes</option>
+            </select>
+        </div>
+        
+        <div class="campo">
+            <label>🏢 Fornecedor</label>
+            <select id="filtroFornecedor">
+                <option value="">Todos os Fornecedores</option>
+            </select>
+        </div>
+        
+        <div class="campo">
+            <label>🌍 Destino</label>
+            <select id="filtroDestino">
+                <option value="">Todos</option>
+                <option value="Nacional">Nacional</option>
+                <option value="Internacional">Internacional</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="acoes-filtro">
+        <button class="btn-primario" id="btnAplicarFiltros">🔍 Aplicar Filtros</button>
+        <button class="btn-secundario" id="btnLimparFiltros">🔄 Limpar Filtros</button>
+        <button class="btn-info" id="btnExportar">📥 Exportar Excel</button>
+        <button class="btn-sucesso" id="btnImprimir">🖨️ Imprimir</button>
+    </div>
+</div>
+
+<!-- Tabs de Relatórios -->
+<div class="tabs">
+    <button class="tab-button ativo" data-tab="geral">📈 Visão Geral</button>
+    <button class="tab-button" data-tab="vendas">💰 Vendas</button>
+    <button class="tab-button" data-tab="financeiro">💵 Financeiro</button>
+    <button class="tab-button" data-tab="fornecedores">🏢 Fornecedores</button>
+    <button class="tab-button" data-tab="clientes">👥 Clientes</button>
+    <button class="tab-button" data-tab="produtos">📦 Produtos</button>
+</div>
+
+<!-- TAB: VISÃO GERAL -->
+<div class="tab-conteudo ativo" id="tab-geral">
+    <div class="resumo-cards" id="cardsGerais">
+        <!-- Preenchido via JS -->
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">
+            📊 Desempenho por Período
+        </div>
+        <div id="graficoDesempenho">
+            <!-- Preenchido via JS -->
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">
+            🎯 Metas e Indicadores
+        </div>
+        <div id="metasIndicadores">
+            <!-- Preenchido via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- TAB: VENDAS -->
+<div class="tab-conteudo" id="tab-vendas">
+    <div class="resumo-cards" id="cardsVendas">
+        <!-- Preenchido via JS -->
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">
+            💰 Detalhamento de Vendas
+            <span style="font-size: 13px; font-weight: 400; color: #718096;" id="totalVendasTexto"></span>
+        </div>
+        <div class="tabela-container">
+            <table id="tabelaVendas">
+                <thead>
+                    <tr>
+                        <th>Venda</th>
+                        <th>Data</th>
+                        <th>Cliente</th>
+                        <th>Produtos</th>
+                        <th>Valor Total</th>
+                        <th>Seu Lucro</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">📈 Evolução de Vendas</div>
+        <div id="graficoEvolucaoVendas"></div>
+    </div>
+</div>
+
+<!-- TAB: FINANCEIRO -->
+<div class="tab-conteudo" id="tab-financeiro">
+    <div class="resumo-cards" id="cardsFinanceiro">
+        <!-- Preenchido via JS -->
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">💵 Fluxo de Caixa</div>
+        <div id="fluxoCaixa">
+            <!-- Preenchido via JS -->
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">📊 Análise de Recebimentos</div>
+        <div class="tabela-container">
+            <table id="tabelaRecebimentos">
+                <thead>
+                    <tr>
+                        <th>Venda</th>
+                        <th>Cliente</th>
+                        <th>Produto</th>
+                        <th>Fornecedor</th>
+                        <th>Forma Pgto</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- TAB: FORNECEDORES -->
+<div class="tab-conteudo" id="tab-fornecedores">
+    <div class="resumo-cards" id="cardsFornecedores">
+        <!-- Preenchido via JS -->
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">🏆 Ranking de Fornecedores</div>
+        <div id="rankingFornecedores">
+            <!-- Preenchido via JS -->
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">📊 Análise por Fornecedor</div>
+        <div class="tabela-container">
+            <table id="tabelaFornecedores">
+                <thead>
+                    <tr>
+                        <th>Fornecedor</th>
+                        <th>Vendas</th>
+                        <th>Faturamento</th>
+                        <th>Seu Lucro</th>
+                        <th>Ticket Médio</th>
+                        <th>% do Total</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- TAB: CLIENTES -->
+<div class="tab-conteudo" id="tab-clientes">
+    <div class="resumo-cards" id="cardsClientes">
+        <!-- Preenchido via JS -->
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">🏆 Top Clientes</div>
+        <div id="rankingClientes">
+            <!-- Preenchido via JS -->
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">📊 Análise por Cliente</div>
+        <div class="tabela-container">
+            <table id="tabelaClientes">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Compras</th>
+                        <th>Valor Total</th>
+                        <th>Ticket Médio</th>
+                        <th>Última Compra</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- TAB: PRODUTOS -->
+<div class="tab-conteudo" id="tab-produtos">
+    <div class="resumo-cards" id="cardsProdutos">
+        <!-- Preenchido via JS -->
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">🌍 Vendas por Destino</div>
+        <div id="graficoDestinos"></div>
+    </div>
+    
+    <div class="card">
+        <div class="card-titulo">📦 Produtos Mais Vendidos</div>
+        <div class="tabela-container">
+            <table id="tabelaProdutos">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Quantidade</th>
+                        <th>Faturamento</th>
+                        <th>Lucro Gerado</th>
+                        <th>Ticket Médio</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="utils.js"></script>
+<script src="db-clientes.js"></script>
+<script src="db-fornecedores.js"></script>
+<script src="db-vendas.js"></script>
+<script src="db-financeiro.js"></script>
+<script>
+let dadosFiltrados = null;
+let periodoAtual = { inicio: null, fim: null };
+
+// TABS
+document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('ativo'));
+        document.querySelectorAll('.tab-conteudo').forEach(c => c.classList.remove('ativo'));
+        btn.classList.add('ativo');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('ativo');
+    });
+});
+
+// PERÍODO
+document.getElementById('filtroPeriodo').addEventListener('change', (e) => {
+    const personalizado = e.target.value === 'personalizado';
+    document.getElementById('dataInicioContainer').style.display = personalizado ? 'block' : 'none';
+    document.getElementById('dataFimContainer').style.display = personalizado ? 'block' : 'none';
+    
+    if (!personalizado) {
+        calcularPeriodo(e.target.value);
+    }
+});
+
+function calcularPeriodo(tipo) {
+    const hoje = new Date();
+    const fim = new Date();
+    let inicio = new Date();
+    
+    switch(tipo) {
+        case 'hoje':
+            inicio = new Date();
+            break;
+        case 'semana':
+            inicio.setDate(hoje.getDate() - 7);
+            break;
+        case 'mes':
+            inicio.setMonth(hoje.getMonth() - 1);
+            break;
+        case 'trimestre':
+            inicio.setMonth(hoje.getMonth() - 3);
+            break;
+        case 'semestre':
+            inicio.setMonth(hoje.getMonth() - 6);
+            break;
+        case 'ano':
+            inicio = new Date(hoje.getFullYear(), 0, 1);
+            break;
+    }
+    
+    periodoAtual = {
+        inicio: inicio.toISOString().split('T')[0],
+        fim: fim.toISOString().split('T')[0]
+    };
+    
+    return periodoAtual;
+}
+
+// CARREGAR FILTROS
+function carregarFiltros() {
+    // Clientes
+    const clientes = DB_CLIENTES.listarTodos();
+    const selectCliente = document.getElementById('filtroCliente');
+    selectCliente.innerHTML = '<option value="">Todos os Clientes</option>';
+    clientes.forEach((c, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = c.nome;
+        selectCliente.appendChild(opt);
+    });
+    
+    // Fornecedores
+    const fornecedores = DB_FORNECEDORES.listarTodos();
+    const selectFornecedor = document.getElementById('filtroFornecedor');
+    selectFornecedor.innerHTML = '<option value="">Todos os Fornecedores</option>';
+    fornecedores.forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.nome;
+        opt.textContent = f.nome;
+        selectFornecedor.appendChild(opt);
+    });
+}
+
+// APLICAR FILTROS
+document.getElementById('btnAplicarFiltros').addEventListener('click', () => {
+    const periodo = document.getElementById('filtroPeriodo').value;
+    
+    if (periodo === 'personalizado') {
+        periodoAtual = {
+            inicio: document.getElementById('dataInicio').value,
+            fim: document.getElementById('dataFim').value
+        };
+        
+        if (!periodoAtual.inicio || !periodoAtual.fim) {
+            mostrarNotificacao('Selecione as datas inicial e final', 'warning');
+            return;
+        }
+    } else {
+        calcularPeriodo(periodo);
+    }
+    
+    gerarRelatorios();
+    mostrarNotificacao('Relatórios atualizados!', 'success');
+});
+
+document.getElementById('btnLimparFiltros').addEventListener('click', () => {
+    document.getElementById('filtroPeriodo').value = 'mes';
+    document.getElementById('filtroCliente').value = '';
+    document.getElementById('filtroFornecedor').value = '';
+    document.getElementById('filtroDestino').value = '';
+    document.getElementById('dataInicioContainer').style.display = 'none';
+    document.getElementById('dataFimContainer').style.display = 'none';
+    calcularPeriodo('mes');
+    gerarRelatorios();
+});
+
+// GERAR RELATÓRIOS
+function gerarRelatorios() {
+    const vendas = filtrarVendas();
+    dadosFiltrados = processarDados(vendas);
+    
+    renderizarVisaoGeral(dadosFiltrados);
+    renderizarVendas(dadosFiltrados);
+    renderizarFinanceiro(dadosFiltrados);
+    renderizarFornecedores(dadosFiltrados);
+    renderizarClientes(dadosFiltrados);
+    renderizarProdutos(dadosFiltrados);
+}
+
+function filtrarVendas() {
+    let vendas = DB_VENDAS.listarTodas();
+    
+    // Filtro por período
+    vendas = vendas.filter(v => {
+        return v.dataCadastro >= periodoAtual.inicio && v.dataCadastro <= periodoAtual.fim;
+    });
+    
+    // Filtro por cliente
+    const clienteFiltro = document.getElementById('filtroCliente').value;
+    if (clienteFiltro) {
+        vendas = vendas.filter(v => v.clienteIndex == clienteFiltro);
+    }
+    
+    // Filtro por fornecedor
+    const fornecedorFiltro = document.getElementById('filtroFornecedor').value;
+    if (fornecedorFiltro) {
+        vendas = vendas.filter(v => 
+            v.produtos.some(p => p.fornecedor === fornecedorFiltro)
+        );
+    }
+    
+    // Filtro por destino
+    const destinoFiltro = document.getElementById('filtroDestino').value;
+    if (destinoFiltro) {
+        vendas = vendas.filter(v => 
+            v.produtos.some(p => p.destino === destinoFiltro)
+        );
+    }
+    
+    return vendas;
+}
+
+function processarDados(vendas) {
+    const dados = {
+        vendas: vendas,
+        totalVendas: vendas.length,
+        faturamentoTotal: 0,
+        lucroTotal: 0,
+        ticketMedio: 0,
+        fornecedores: {},
+        clientes: {},
+        produtos: {},
+        destinos: { Nacional: 0, Internacional: 0 }
+    };
+    
+    vendas.forEach(venda => {
+        dados.faturamentoTotal += venda.totalValorCliente || 0;
+        dados.lucroTotal += venda.totalLucro || 0;
+        
+        // Por cliente
+        if (!dados.clientes[venda.clienteNome]) {
+            dados.clientes[venda.clienteNome] = {
+                nome: venda.clienteNome,
+                compras: 0,
+                valorTotal: 0,
+                ultimaCompra: venda.dataCadastro
+            };
+        }
+        dados.clientes[venda.clienteNome].compras++;
+        dados.clientes[venda.clienteNome].valorTotal += venda.totalValorCliente;
+        
+        // Por produto/fornecedor
+        venda.produtos.forEach(p => {
+            // Fornecedores
+            if (!dados.fornecedores[p.fornecedor]) {
+                dados.fornecedores[p.fornecedor] = {
+                    nome: p.fornecedor,
+                    vendas: 0,
+                    faturamento: 0,
+                    lucro: 0
+                };
+            }
+            dados.fornecedores[p.fornecedor].vendas++;
+            dados.fornecedores[p.fornecedor].faturamento += p.valorTotal || 0;
+            dados.fornecedores[p.fornecedor].lucro += p.lucro || 0;
+            
+            // Produtos
+            if (!dados.produtos[p.produto]) {
+                dados.produtos[p.produto] = {
+                    nome: p.produto,
+                    quantidade: 0,
+                    faturamento: 0,
+                    lucro: 0
+                };
+            }
+            dados.produtos[p.produto].quantidade++;
+            dados.produtos[p.produto].faturamento += p.valorTotal || 0;
+            dados.produtos[p.produto].lucro += p.lucro || 0;
+            
+            // Destinos
+            dados.destinos[p.destino] = (dados.destinos[p.destino] || 0) + 1;
+        });
+    });
+    
+    dados.ticketMedio = dados.totalVendas > 0 ? dados.faturamentoTotal / dados.totalVendas : 0;
+    
+    return dados;
+}
+
+// RENDERIZAR VISÃO GERAL
+function renderizarVisaoGeral(dados) {
+    const container = document.getElementById('cardsGerais');
+    container.innerHTML = `
+        <div class="resumo-card verde">
+            <div class="resumo-label">Faturamento</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.faturamentoTotal)}</div>
+            <div class="resumo-subtexto">${dados.totalVendas} vendas</div>
+        </div>
+        <div class="resumo-card azul">
+            <div class="resumo-label">Seu Lucro</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.lucroTotal)}</div>
+            <div class="resumo-subtexto">${((dados.lucroTotal / dados.faturamentoTotal) * 100 || 0).toFixed(1)}% margem</div>
+        </div>
+        <div class="resumo-card laranja">
+            <div class="resumo-label">Ticket Médio</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.ticketMedio)}</div>
+            <div class="resumo-subtexto">por venda</div>
+        </div>
+        <div class="resumo-card roxo">
+            <div class="resumo-label">Clientes Atendidos</div>
+            <div class="resumo-valor">${Object.keys(dados.clientes).length}</div>
+            <div class="resumo-subtexto">${dados.totalVendas} vendas</div>
+        </div>
+    `;
+    
+    // Gráfico de desempenho
+    const top5Fornecedores = Object.values(dados.fornecedores)
+        .sort((a, b) => b.faturamento - a.faturamento)
+        .slice(0, 5);
+    
+    const maxFaturamento = top5Fornecedores[0]?.faturamento || 1;
+    
+    document.getElementById('graficoDesempenho').innerHTML = top5Fornecedores.length > 0 
+        ? top5Fornecedores.map(f => `
+            <div class="grafico-barra">
+                <div class="grafico-label">${f.nome}</div>
+                <div class="grafico-barra-visual">
+                    <div class="grafico-barra-preenchida" style="width: ${(f.faturamento / maxFaturamento) * 100}%">
+                        <span class="grafico-valor">${formatarMoedaBR(f.faturamento)}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('')
+        : '<div class="mensagem-vazia">Nenhum dado no período</div>';
+    
+    // Metas e Indicadores
+    const metaVendas = 10; // Configurável
+    const metaFaturamento = 1000000; // R$ 10.000,00
+    const percVendas = (dados.totalVendas / metaVendas) * 100;
+    const percFaturamento = (dados.faturamentoTotal / metaFaturamento) * 100;
+    
+    document.getElementById('metasIndicadores').innerHTML = `
+        <div class="grafico-barra">
+            <div class="grafico-label">Meta de Vendas</div>
+            <div class="grafico-barra-visual">
+                <div class="grafico-barra-preenchida" style="width: ${Math.min(percVendas, 100)}%; background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);">
+                    <span class="grafico-valor">${dados.totalVendas} / ${metaVendas}</span>
+                </div>
+            </div>
+        </div>
+        <div class="grafico-barra">
+            <div class="grafico-label">Meta de Faturamento</div>
+            <div class="grafico-barra-visual">
+                <div class="grafico-barra-preenchida" style="width: ${Math.min(percFaturamento, 100)}%; background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);">
+                    <span class="grafico-valor">${formatarMoedaBR(dados.faturamentoTotal)}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// RENDERIZAR VENDAS
+function renderizarVendas(dados) {
+    document.getElementById('cardsVendas').innerHTML = `
+        <div class="resumo-card verde">
+            <div class="resumo-label">Total de Vendas</div>
+            <div class="resumo-valor">${dados.totalVendas}</div>
+            <div class="resumo-subtexto">no período</div>
+        </div>
+        <div class="resumo-card azul">
+            <div class="resumo-label">Faturamento</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.faturamentoTotal)}</div>
+            <div class="resumo-subtexto">valor total</div>
+        </div>
+        <div class="resumo-card laranja">
+            <div class="resumo-label">Lucro Total</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.lucroTotal)}</div>
+            <div class="resumo-subtexto">${((dados.lucroTotal / dados.faturamentoTotal) * 100 || 0).toFixed(1)}% margem</div>
+        </div>
+        <div class="resumo-card roxo">
+            <div class="resumo-label">Ticket Médio</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.ticketMedio)}</div>
+            <div class="resumo-subtexto">por venda</div>
+        </div>
+    `;
+    
+    document.getElementById('totalVendasTexto').textContent = `${dados.totalVendas} vendas encontradas`;
+    
+    const tbody = document.querySelector('#tabelaVendas tbody');
+    tbody.innerHTML = '';
+    
+    if (dados.vendas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="mensagem-vazia">Nenhuma venda no período</td></tr>';
+        return;
+    }
+    
+    dados.vendas.forEach(v => {
+        const tr = document.createElement('tr');
+        const statusFinanceiro = getStatusFinanceiro(v.numero);
+        tr.innerHTML = `
+            <td><strong>#${v.numero}</strong></td>
+            <td>${new Date(v.dataCadastro + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+            <td>${v.clienteNome}</td>
+            <td>${v.produtos.length} produto(s)</td>
+            <td><strong>${formatarMoedaBR(v.totalValorCliente)}</strong></td>
+            <td style="color: #48bb78;"><strong>${formatarMoedaBR(v.totalLucro)}</strong></td>
+            <td>${statusFinanceiro}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function getStatusFinanceiro(vendaNumero) {
+    const contas = DB_FINANCEIRO.buscarContasReceber('', '', 'todos');
+    const conta = contas.find(c => c.vendaNumero === vendaNumero);
+    
+    if (!conta) return '<span class="badge badge-info">N/A</span>';
+    
+    if (conta.status === 'recebido') {
+        return '<span class="badge badge-sucesso">Recebido</span>';
+    } else if (conta.status === 'parcial') {
+        return '<span class="badge badge-alerta">Parcial</span>';
+    } else {
+        return '<span class="badge badge-info">Pendente</span>';
+    }
+}
+
+// RENDERIZAR FINANCEIRO
+function renderizarFinanceiro(dados) {
+    const totaisReceber = DB_FINANCEIRO.calcularTotaisContasReceber(periodoAtual.inicio, periodoAtual.fim);
+    const totaisPagar = DB_FINANCEIRO.calcularTotaisContasPagar(periodoAtual.inicio, periodoAtual.fim);
+    const caixa = totaisReceber.recebidas - totaisPagar.pagas;
+    
+    document.getElementById('cardsFinanceiro').innerHTML = `
+        <div class="resumo-card verde">
+            <div class="resumo-label">Recebido</div>
+            <div class="resumo-valor">${formatarMoedaBR(totaisReceber.recebidas)}</div>
+            <div class="resumo-subtexto">entradas</div>
+        </div>
+        <div class="resumo-card vermelho">
+            <div class="resumo-label">Pago</div>
+            <div class="resumo-valor">${formatarMoedaBR(totaisPagar.pagas)}</div>
+            <div class="resumo-subtexto">saídas</div>
+        </div>
+        <div class="resumo-card azul">
+            <div class="resumo-label">Caixa Real</div>
+            <div class="resumo-valor">${formatarMoedaBR(caixa)}</div>
+            <div class="resumo-subtexto">saldo</div>
+        </div>
+        <div class="resumo-card laranja">
+            <div class="resumo-label">Pendente</div>
+            <div class="resumo-valor">${formatarMoedaBR(totaisReceber.pendentes)}</div>
+            <div class="resumo-subtexto">a receber</div>
+        </div>
+    `;
+    
+    // Fluxo de caixa
+    document.getElementById('fluxoCaixa').innerHTML = `
+        <div class="grafico-barra">
+            <div class="grafico-label">Entradas</div>
+            <div class="grafico-barra-visual">
+                <div class="grafico-barra-preenchida" style="width: 100%; background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);">
+                    <span class="grafico-valor">${formatarMoedaBR(totaisReceber.recebidas)}</span>
+                </div>
+            </div>
+        </div>
+        <div class="grafico-barra">
+            <div class="grafico-label">Saídas</div>
+            <div class="grafico-barra-visual">
+                <div class="grafico-barra-preenchida" style="width: ${(totaisPagar.pagas / totaisReceber.recebidas) * 100}%; background: linear-gradient(90deg, #e53e3e 0%, #c53030 100%);">
+                    <span class="grafico-valor">${formatarMoedaBR(totaisPagar.pagas)}</span>
+                </div>
+            </div>
+        </div>
+        <div class="grafico-barra">
+            <div class="grafico-label">Saldo</div>
+            <div class="grafico-barra-visual">
+                <div class="grafico-barra-preenchida" style="width: ${(caixa / totaisReceber.recebidas) * 100}%; background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);">
+                    <span class="grafico-valor">${formatarMoedaBR(caixa)}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Tabela de recebimentos
+    const tbody = document.querySelector('#tabelaRecebimentos tbody');
+    tbody.innerHTML = '';
+    
+    const contasReceber = DB_FINANCEIRO.buscarContasReceber(periodoAtual.inicio, periodoAtual.fim, 'todos')
+        .filter(c => c.tipo === 'venda');
+    
+    if (contasReceber.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="mensagem-vazia">Nenhum recebimento no período</td></tr>';
+        return;
+    }
+    
+    contasReceber.forEach(conta => {
+        if (conta.subitens) {
+            conta.subitens.forEach(sub => {
+                const tr = document.createElement('tr');
+                const statusBadge = sub.status === 'recebido' ? 'badge-sucesso' : 
+                                   sub.status === 'aguardando_repasse' ? 'badge-alerta' : 'badge-info';
+                const statusTexto = sub.status === 'recebido' ? 'Recebido' :
+                                   sub.status === 'aguardando_repasse' ? 'Aguardando' : 'Pendente';
+                
+                tr.innerHTML = `
+                    <td>#${conta.vendaNumero}</td>
+                    <td>${conta.devedor}</td>
+                    <td>${sub.produtoNome}</td>
+                    <td>${sub.fornecedor}</td>
+                    <td>${sub.formaPagamento?.toUpperCase() || '-'}</td>
+                    <td>${formatarMoedaBR(sub.valorTotal)}</td>
+                    <td><span class="badge ${statusBadge}">${statusTexto}</span></td>
+                    <td>${sub.dataRecebimento || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    });
+}
+
+// RENDERIZAR FORNECEDORES
+function renderizarFornecedores(dados) {
+    const fornecedoresArray = Object.values(dados.fornecedores)
+        .sort((a, b) => b.faturamento - a.faturamento);
+    
+    const totalFornecedores = fornecedoresArray.length;
+    const totalVendasFornecedores = fornecedoresArray.reduce((sum, f) => sum + f.vendas, 0);
+    const mediaVendasPorFornecedor = totalFornecedores > 0 ? totalVendasFornecedores / totalFornecedores : 0;
+    
+    document.getElementById('cardsFornecedores').innerHTML = `
+        <div class="resumo-card azul">
+            <div class="resumo-label">Fornecedores Ativos</div>
+            <div class="resumo-valor">${totalFornecedores}</div>
+            <div class="resumo-subtexto">no período</div>
+        </div>
+        <div class="resumo-card verde">
+            <div class="resumo-label">Total Negociado</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.faturamentoTotal)}</div>
+            <div class="resumo-subtexto">faturamento</div>
+        </div>
+        <div class="resumo-card laranja">
+            <div class="resumo-label">Lucro com Fornecedores</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.lucroTotal)}</div>
+            <div class="resumo-subtexto">comissões</div>
+        </div>
+        <div class="resumo-card roxo">
+            <div class="resumo-label">Média por Fornecedor</div>
+            <div class="resumo-valor">${mediaVendasPorFornecedor.toFixed(1)}</div>
+            <div class="resumo-subtexto">vendas</div>
+        </div>
+    `;
+    
+    // Ranking
+    const top10 = fornecedoresArray.slice(0, 10);
+    document.getElementById('rankingFornecedores').innerHTML = top10.length > 0
+        ? top10.map((f, i) => {
+            let posicaoClass = '';
+            if (i === 0) posicaoClass = 'ouro';
+            else if (i === 1) posicaoClass = 'prata';
+            else if (i === 2) posicaoClass = 'bronze';
+            
+            return `
+                <div class="ranking-item">
+                    <div class="ranking-posicao ${posicaoClass}">${i + 1}</div>
+                    <div class="ranking-info">
+                        <div class="ranking-nome">${f.nome}</div>
+                        <div class="ranking-detalhe">${f.vendas} vendas • Lucro: ${formatarMoedaBR(f.lucro)}</div>
+                    </div>
+                    <div class="ranking-valor">${formatarMoedaBR(f.faturamento)}</div>
+                </div>
+            `;
+        }).join('')
+        : '<div class="mensagem-vazia">Nenhum fornecedor no período</div>';
+    
+    // Tabela
+    const tbody = document.querySelector('#tabelaFornecedores tbody');
+    tbody.innerHTML = '';
+    
+    if (fornecedoresArray.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="mensagem-vazia">Nenhum fornecedor no período</td></tr>';
+        return;
+    }
+    
+    fornecedoresArray.forEach(f => {
+        const tr = document.createElement('tr');
+        const ticketMedio = f.vendas > 0 ? f.faturamento / f.vendas : 0;
+        const percentual = (f.faturamento / dados.faturamentoTotal) * 100;
+        
+        tr.innerHTML = `
+            <td><strong>${f.nome}</strong></td>
+            <td>${f.vendas}</td>
+            <td>${formatarMoedaBR(f.faturamento)}</td>
+            <td style="color: #48bb78;"><strong>${formatarMoedaBR(f.lucro)}</strong></td>
+            <td>${formatarMoedaBR(ticketMedio)}</td>
+            <td>${percentual.toFixed(1)}%</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// RENDERIZAR CLIENTES
+function renderizarClientes(dados) {
+    const clientesArray = Object.values(dados.clientes)
+        .sort((a, b) => b.valorTotal - a.valorTotal);
+    
+    const totalClientes = clientesArray.length;
+    const mediaComprasPorCliente = totalClientes > 0 ? dados.totalVendas / totalClientes : 0;
+    
+    document.getElementById('cardsClientes').innerHTML = `
+        <div class="resumo-card azul">
+            <div class="resumo-label">Clientes Atendidos</div>
+            <div class="resumo-valor">${totalClientes}</div>
+            <div class="resumo-subtexto">no período</div>
+        </div>
+        <div class="resumo-card verde">
+            <div class="resumo-label">Faturamento Total</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.faturamentoTotal)}</div>
+            <div class="resumo-subtexto">vendas</div>
+        </div>
+        <div class="resumo-card laranja">
+            <div class="resumo-label">Ticket Médio</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.ticketMedio)}</div>
+            <div class="resumo-subtexto">por cliente</div>
+        </div>
+        <div class="resumo-card roxo">
+            <div class="resumo-label">Média de Compras</div>
+            <div class="resumo-valor">${mediaComprasPorCliente.toFixed(1)}</div>
+            <div class="resumo-subtexto">por cliente</div>
+        </div>
+    `;
+    
+    // Ranking
+    const top10 = clientesArray.slice(0, 10);
+    document.getElementById('rankingClientes').innerHTML = top10.length > 0
+        ? top10.map((c, i) => {
+            let posicaoClass = '';
+            if (i === 0) posicaoClass = 'ouro';
+            else if (i === 1) posicaoClass = 'prata';
+            else if (i === 2) posicaoClass = 'bronze';
+            
+            const ticketMedio = c.compras > 0 ? c.valorTotal / c.compras : 0;
+            
+            return `
+                <div class="ranking-item">
+                    <div class="ranking-posicao ${posicaoClass}">${i + 1}</div>
+                    <div class="ranking-info">
+                        <div class="ranking-nome">${c.nome}</div>
+                        <div class="ranking-detalhe">${c.compras} compras • Ticket: ${formatarMoedaBR(ticketMedio)}</div>
+                    </div>
+                    <div class="ranking-valor">${formatarMoedaBR(c.valorTotal)}</div>
+                </div>
+            `;
+        }).join('')
+        : '<div class="mensagem-vazia">Nenhum cliente no período</div>';
+    
+    // Tabela
+    const tbody = document.querySelector('#tabelaClientes tbody');
+    tbody.innerHTML = '';
+    
+    if (clientesArray.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="mensagem-vazia">Nenhum cliente no período</td></tr>';
+        return;
+    }
+    
+    clientesArray.forEach(c => {
+        const tr = document.createElement('tr');
+        const ticketMedio = c.compras > 0 ? c.valorTotal / c.compras : 0;
+        
+        tr.innerHTML = `
+            <td><strong>${c.nome}</strong></td>
+            <td>${c.compras}</td>
+            <td>${formatarMoedaBR(c.valorTotal)}</td>
+            <td>${formatarMoedaBR(ticketMedio)}</td>
+            <td>${new Date(c.ultimaCompra + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// RENDERIZAR PRODUTOS
+function renderizarProdutos(dados) {
+    const produtosArray = Object.values(dados.produtos)
+        .sort((a, b) => b.faturamento - a.faturamento);
+    
+    const totalProdutos = produtosArray.reduce((sum, p) => sum + p.quantidade, 0);
+    
+    document.getElementById('cardsProdutos').innerHTML = `
+        <div class="resumo-card azul">
+            <div class="resumo-label">Produtos Vendidos</div>
+            <div class="resumo-valor">${totalProdutos}</div>
+            <div class="resumo-subtexto">unidades</div>
+        </div>
+        <div class="resumo-card verde">
+            <div class="resumo-label">Faturamento</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.faturamentoTotal)}</div>
+            <div class="resumo-subtexto">total</div>
+        </div>
+        <div class="resumo-card laranja">
+            <div class="resumo-label">Lucro Total</div>
+            <div class="resumo-valor">${formatarMoedaBR(dados.lucroTotal)}</div>
+            <div class="resumo-subtexto">produtos</div>
+        </div>
+        <div class="resumo-card roxo">
+            <div class="resumo-label">Tipos Diferentes</div>
+            <div class="resumo-valor">${produtosArray.length}</div>
+            <div class="resumo-subtexto">produtos</div>
+        </div>
+    `;
+    
+    // Gráfico destinos
+    const totalDestinos = dados.destinos.Nacional + dados.destinos.Internacional;
+    const percNacional = totalDestinos > 0 ? (dados.destinos.Nacional / totalDestinos) * 100 : 0;
+    const percInternacional = totalDestinos > 0 ? (dados.destinos.Internacional / totalDestinos) * 100 : 0;
+    
+    document.getElementById('graficoDestinos').innerHTML = `
+        <div class="grafico-barra">
+            <div class="grafico-label">Nacional</div>
+            <div class="grafico-barra-visual">
+                <div class="grafico-barra-preenchida" style="width: ${percNacional}%; background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);">
+                    <span class="grafico-valor">${dados.destinos.Nacional} (${percNacional.toFixed(1)}%)</span>
+                </div>
+            </div>
+        </div>
+        <div class="grafico-barra">
+            <div class="grafico-label">Internacional</div>
+            <div class="grafico-barra-visual">
+                <div class="grafico-barra-preenchida" style="width: ${percInternacional}%; background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);">
+                    <span class="grafico-valor">${dados.destinos.Internacional} (${percInternacional.toFixed(1)}%)</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Tabela
+    const tbody = document.querySelector('#tabelaProdutos tbody');
+    tbody.innerHTML = '';
+    
+    if (produtosArray.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="mensagem-vazia">Nenhum produto no período</td></tr>';
+        return;
+    }
+    
+    produtosArray.forEach(p => {
+        const tr = document.createElement('tr');
+        const ticketMedio = p.quantidade > 0 ? p.faturamento / p.quantidade : 0;
+        
+        tr.innerHTML = `
+            <td><strong>${p.nome}</strong></td>
+            <td>${p.quantidade}</td>
+            <td>${formatarMoedaBR(p.faturamento)}</td>
+            <td style="color: #48bb78;"><strong>${formatarMoedaBR(p.lucro)}</strong></td>
+            <td>${formatarMoedaBR(ticketMedio)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// EXPORTAR / IMPRIMIR
+document.getElementById('btnExportar').addEventListener('click', () => {
+    mostrarNotificacao('Funcionalidade de exportação em desenvolvimento', 'info');
+});
+
+document.getElementById('btnImprimir').addEventListener('click', () => {
+    window.print();
+});
+
+// INICIALIZAÇÃO
+calcularPeriodo('mes');
+carregarFiltros();
+gerarRelatorios();
+
+console.log('Módulo de relatórios carregado');
+</script>
+
+</body>
+</html>

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Gestão IARA</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #f8f6f1;
+}
+
+/* Menu Lateral */
+#menuLateral {
+    width: 220px;
+    background-color: #f8f6f1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+#menuLateral.oculto {
+    transform: translateX(-100%);
+}
+
+#menuLateral img {
+    max-width: 140px;
+    margin: 0 auto 30px;
+    display: block;
+}
+
+.menu-nav button {
+    width: 100%;
+    margin: 8px 0;
+    padding: 12px 16px;
+    background-color: #ccbfb5;
+    color: #2c3e50;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.menu-nav button:hover {
+    background-color: #2c3e50;
+    color: #f8f6f1;
+    transform: translateX(5px);
+}
+
+.menu-nav button.ativo {
+    background-color: #2c3e50;
+    color: #f8f6f1;
+    font-weight: 600;
+}
+
+#btnSair {
+    background-color: #e53e3e;
+    color: white;
+    margin-top: 20px;
+}
+
+#btnSair:hover {
+    background-color: #c53030;
+    transform: translateX(0);
+}
+
+/* Área de Conteúdo */
+#areaConteudo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#cabecalho {
+    background: white;
+    padding: 15px 30px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#cabecalho h1 {
+    font-size: 20px;
+    color: #2c3e50;
+}
+
+.info-usuario {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #718096;
+    font-size: 14px;
+}
+
+#conteudoPrincipal {
+    flex: 1;
+    overflow-y: auto;
+    background-image: url('fundo.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+}
+
+/* Tela de Login */
+#telaLogin {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(204,191,181,0.95) 0%, rgba(44,62,80,0.95) 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.container-login {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    text-align: center;
+    min-width: 320px;
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.container-login img {
+    max-width: 180px;
+    margin-bottom: 20px;
+}
+
+.container-login h2 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 24px;
+}
+
+.campo-login {
+    margin-bottom: 15px;
+}
+
+.campo-login input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border 0.3s;
+}
+
+.campo-login input:focus {
+    outline: none;
+    border-color: #ccbfb5;
+}
+
+#btnEntrar {
+    width: 100%;
+    padding: 12px;
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+#btnEntrar:hover {
+    background-color: #1a252f;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+#btnEntrar:active {
+    transform: translateY(0);
+}
+
+.mensagem-erro {
+    color: #e53e3e;
+    font-size: 13px;
+    margin-top: 10px;
+    display: none;
+}
+
+/* Modal Motivacional */
+#modalMotivacional {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-motivacional-conteudo {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 20px;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    text-align: center;
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-motivacional-conteudo h3 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.modal-motivacional-conteudo p {
+    font-size: 16px;
+    line-height: 1.8;
+    margin-bottom: 30px;
+    opacity: 0.95;
+}
+
+#btnFecharMotivacional {
+    background: white;
+    color: #667eea;
+    padding: 12px 40px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#btnFecharMotivacional:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    #menuLateral {
+        position: absolute;
+        z-index: 100;
+        height: 100%;
+    }
+    
+    #cabecalho h1 {
+        font-size: 16px;
+    }
+}
+</style>
+</head>
+<body>
+
+<!-- Tela de Login -->
+<div id="telaLogin">
+    <div class="container-login">
+        <img src="menu.png" alt="Logo IARA">
+        <h2>Bem-vindo(a)</h2>
+        
+        <form id="formLogin">
+            <div class="campo-login">
+                <input 
+                    type="text" 
+                    id="inputUsuario" 
+                    placeholder="Usuário" 
+                    autocomplete="username"
+                    required
+                >
+            </div>
+            
+            <div class="campo-login">
+                <input 
+                    type="password" 
+                    id="inputSenha" 
+                    placeholder="Senha"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+            
+            <button type="submit" id="btnEntrar">Entrar</button>
+            <div class="mensagem-erro" id="mensagemErro">Usuário ou senha incorretos</div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Motivacional -->
+<div id="modalMotivacional">
+    <div class="modal-motivacional-conteudo">
+        <div style="font-size: 48px; margin-bottom: 20px;">✨</div>
+        <h3 id="tituloMotivacional"></h3>
+        <p id="textoMotivacional"></p>
+        <button id="btnFecharMotivacional">Vamos lá! 🚀</button>
+    </div>
+</div>
+
+<!-- Sistema Principal -->
+<div id="menuLateral" style="display: none;">
+    <div>
+        <img src="menu.png" alt="Menu">
+        
+        <nav class="menu-nav">
+            <button data-modulo="clientes.html">
+                👥 Clientes
+            </button>
+            <button data-modulo="fornecedores.html">
+                🏢 Fornecedores
+            </button>
+            <button data-modulo="vendas.html">
+                💰 Vendas
+            </button>
+            <button data-modulo="financeiro.html">
+                📊 Financeiro
+            </button>
+	    <button data-modulo="relatorios.html">
+   		📈 Relatórios
+	    </button>
+            <button data-modulo="agenda.html">
+                📅 Agenda
+            </button>
+            <button data-modulo="manutencao.html">
+                ⚙️ Manutenção
+            </button>
+        </nav>
+    </div>
+    
+    <button id="btnSair">🚪 Sair</button>
+</div>
+
+<div id="areaConteudo" style="display: none;">
+    <div id="cabecalho">
+        <h1 id="tituloModulo">Sistema de Gestão</h1>
+        <div class="info-usuario">
+            <span id="nomeUsuario"></span>
+        </div>
+    </div>
+    
+    <div id="conteudoPrincipal">
+        <iframe id="iframeModulo"></iframe>
+    </div>
+</div>
+
+<script src="utils.js"></script>
+<script>
+// ==================== MENSAGENS MOTIVACIONAIS ====================
+
+const mensagensMotivacionais = [
+    {
+        titulo: "Transforme sonhos em viagens!",
+        texto: "Cada pacote que você vende não é apenas uma viagem, mas uma memória que seus clientes guardarão para sempre. Hoje é um ótimo dia para fazer isso acontecer!"
+    },
+    {
+        titulo: "O mundo espera por seus clientes!",
+        texto: "Você não vende destinos, vende experiências únicas e momentos inesquecíveis. Continue inspirando pessoas a conhecerem o mundo!"
+    },
+    {
+        titulo: "Seja a ponte entre sonhos e realidade!",
+        texto: "Aquela lua de mel perfeita, aquela viagem em família sonhada... você torna tudo isso possível. Seu trabalho muda vidas!"
+    },
+    {
+        titulo: "Cada 'sim' é uma aventura!",
+        texto: "Hoje pode ser o dia em que você fecha aquele pacote especial. Mantenha o entusiasmo e mostre aos seus clientes as maravilhas que os esperam!"
+    },
+    {
+        titulo: "Você vende felicidade!",
+        texto: "Lembre-se: turismo é sobre criar momentos mágicos. Seja apaixonado pelo que você oferece e seus clientes sentirão essa energia!"
+    },
+    {
+        titulo: "Conecte pessoas a lugares incríveis!",
+        texto: "Sua expertise torna viagens complexas em experiências simples e memoráveis. Continue sendo essencial na vida dos seus clientes!"
+    },
+    {
+        titulo: "Você é um criador de histórias!",
+        texto: "Cada destino que você apresenta é o início de uma nova história. Ajude seus clientes a escreverem os melhores capítulos de suas vidas!"
+    },
+    {
+        titulo: "A próxima venda está a um 'olá' de distância!",
+        texto: "Mantenha seu networking ativo, entre em contato com aquele cliente, envie aquela proposta. Oportunidades surgem para quem age!"
+    },
+    {
+        titulo: "Inspire confiança e conquiste clientes!",
+        texto: "Seu conhecimento e dedicação fazem a diferença. Seja o consultor de viagens que seus clientes recomendam para família e amigos!"
+    },
+    {
+        titulo: "Todo dia é dia de vender viagens dos sonhos!",
+        texto: "Aquela viagem internacional, aquele cruzeiro, aquele resort paradisíaco... você tem o poder de realizar tudo isso. Vamos lá!"
+    }
+];
+
+function mostrarMensagemMotivacional() {
+    const msg = mensagensMotivacionais[Math.floor(Math.random() * mensagensMotivacionais.length)];
+    document.getElementById('tituloMotivacional').textContent = msg.titulo;
+    document.getElementById('textoMotivacional').textContent = msg.texto;
+    document.getElementById('modalMotivacional').style.display = 'flex';
+}
+
+document.getElementById('btnFecharMotivacional').addEventListener('click', () => {
+    document.getElementById('modalMotivacional').style.display = 'none';
+});
+
+// ==================== SISTEMA DE LOGIN ====================
+
+const CREDENCIAIS = {
+    usuario: "iara",
+    senha: "04061996"
+};
+
+let usuarioLogado = null;
+
+const elementos = {
+    telaLogin: document.getElementById('telaLogin'),
+    menuLateral: document.getElementById('menuLateral'),
+    areaConteudo: document.getElementById('areaConteudo'),
+    formLogin: document.getElementById('formLogin'),
+    inputUsuario: document.getElementById('inputUsuario'),
+    inputSenha: document.getElementById('inputSenha'),
+    mensagemErro: document.getElementById('mensagemErro'),
+    btnSair: document.getElementById('btnSair'),
+    iframeModulo: document.getElementById('iframeModulo'),
+    tituloModulo: document.getElementById('tituloModulo'),
+    nomeUsuario: document.getElementById('nomeUsuario')
+};
+
+// Verifica se já está logado (sessão)
+function verificarSessao() {
+    const sessao = sessionStorage.getItem('usuarioLogado');
+    if (sessao) {
+        usuarioLogado = JSON.parse(sessao);
+        mostrarSistema();
+    }
+}
+
+// Login
+elementos.formLogin.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const usuario = elementos.inputUsuario.value.trim();
+    const senha = elementos.inputSenha.value.trim();
+    
+    // Validação
+    if (usuario === CREDENCIAIS.usuario && senha === CREDENCIAIS.senha) {
+        usuarioLogado = {
+            nome: "Iara",
+            usuario: usuario,
+            loginEm: new Date().toISOString()
+        };
+        
+        // Salva sessão
+        sessionStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
+        
+        mostrarSistema();
+        
+        if (typeof mostrarNotificacao === 'function') {
+            mostrarNotificacao('Login realizado com sucesso!', 'success');
+        }
+    } else {
+        elementos.mensagemErro.style.display = 'block';
+        elementos.inputSenha.value = '';
+        elementos.inputSenha.focus();
+        
+        // Esconde mensagem após 3s
+        setTimeout(() => {
+            elementos.mensagemErro.style.display = 'none';
+        }, 3000);
+    }
+});
+
+// Mostra sistema após login
+function mostrarSistema() {
+    elementos.telaLogin.style.display = 'none';
+    elementos.menuLateral.style.display = 'flex';
+    elementos.areaConteudo.style.display = 'flex';
+    elementos.nomeUsuario.textContent = usuarioLogado.nome;
+    
+    // Carrega módulo inicial
+    abrirModulo('clientes.html');
+    
+    // Mostra mensagem motivacional após 500ms
+    setTimeout(() => {
+        mostrarMensagemMotivacional();
+    }, 500);
+}
+
+// Logout
+elementos.btnSair.addEventListener('click', () => {
+    if (confirm('Deseja realmente sair do sistema?')) {
+        sessionStorage.removeItem('usuarioLogado');
+        usuarioLogado = null;
+        
+        elementos.telaLogin.style.display = 'flex';
+        elementos.menuLateral.style.display = 'none';
+        elementos.areaConteudo.style.display = 'none';
+        elementos.iframeModulo.src = '';
+        
+        elementos.inputUsuario.value = '';
+        elementos.inputSenha.value = '';
+        elementos.inputUsuario.focus();
+        
+        if (typeof mostrarNotificacao === 'function') {
+            mostrarNotificacao('Você saiu do sistema', 'info');
+        }
+    }
+});
+
+// ==================== NAVEGAÇÃO DE MÓDULOS ====================
+
+function abrirModulo(url) {
+    elementos.iframeModulo.src = url;
+    
+    // Atualiza título
+const titulos = {
+    'clientes.html': 'Gestão de Clientes',
+    'fornecedores.html': 'Gestão de Fornecedores',
+    'vendas.html': 'Gestão de Vendas',
+    'financeiro.html': 'Módulo Financeiro',
+    'relatorios.html': 'Relatórios Gerenciais', // ADICIONE ESTA LINHA
+    'agenda.html': 'Agenda de Compromissos',
+    'manutencao.html': 'Manutenção do Sistema'
+};
+
+    elementos.tituloModulo.textContent = titulos[url] || 'Sistema de Gestão';
+    
+    // Marca botão ativo
+    document.querySelectorAll('.menu-nav button').forEach(btn => {
+        btn.classList.remove('ativo');
+        if (btn.dataset.modulo === url) {
+            btn.classList.add('ativo');
+        }
+    });
+}
+
+// Event listeners dos botões do menu
+document.querySelectorAll('.menu-nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        abrirModulo(btn.dataset.modulo);
+    });
+});
+
+// ==================== INICIALIZAÇÃO ====================
+
+// Verifica sessão ao carregar
+verificarSessao();
+
+// Foco no input de usuário
+elementos.inputUsuario.focus();
+
+console.log('✓ Sistema iniciado');
+</script>
+
+</body>
+</html>

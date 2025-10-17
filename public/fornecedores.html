@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Fornecedores</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.95);
+    min-height: 100vh;
+}
+
+h2 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 24px;
+}
+
+h3 {
+    color: #4a5568;
+    margin: 20px 0 15px;
+    font-size: 18px;
+}
+
+/* Formulário */
+.formulario {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.campo {
+    margin-bottom: 15px;
+}
+
+.campo label {
+    display: block;
+    margin-bottom: 5px;
+    color: #4a5568;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.campo input,
+.campo textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border 0.3s;
+}
+
+.campo textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.campo input:focus,
+.campo textarea:focus {
+    outline: none;
+    border-color: #ccbfb5;
+}
+
+/* Botões */
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primario {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.btn-primario:hover {
+    background-color: #1a252f;
+    transform: translateY(-2px);
+}
+
+.btn-secundario {
+    background-color: #ccbfb5;
+    color: #2c3e50;
+}
+
+.btn-secundario:hover {
+    background-color: #b8ada3;
+}
+
+.btn-perigo {
+    background-color: #e53e3e;
+    color: white;
+}
+
+.btn-perigo:hover {
+    background-color: #c53030;
+}
+
+.btn-pequeno {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+/* Barra de Busca */
+.barra-busca {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.barra-busca select,
+.barra-busca input {
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.barra-busca select {
+    min-width: 150px;
+}
+
+.barra-busca input {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Lista de Fornecedores */
+.lista-fornecedores {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.fornecedor-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.fornecedor-item:hover {
+    background: #f7fafc;
+}
+
+.fornecedor-item:last-child {
+    border-bottom: none;
+}
+
+.fornecedor-info {
+    flex: 1;
+}
+
+.fornecedor-nome {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.fornecedor-detalhes {
+    font-size: 13px;
+    color: #718096;
+}
+
+.fornecedor-acoes {
+    display: flex;
+    gap: 8px;
+}
+
+.mensagem-vazia {
+    padding: 40px 20px;
+    text-align: center;
+    color: #718096;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal.ativo {
+    display: flex;
+}
+
+.modal-conteudo {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h3 {
+    margin: 0;
+}
+
+.btn-fechar {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #718096;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.detalhe-secao {
+    margin-bottom: 20px;
+}
+
+.detalhe-secao h4 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.detalhe-linha {
+    padding: 10px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.detalhe-linha:last-child {
+    border-bottom: none;
+}
+
+.detalhe-label {
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 3px;
+    font-size: 13px;
+}
+
+.detalhe-valor {
+    color: #2d3748;
+    word-break: break-word;
+}
+
+.senha-campo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.senha-campo button {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+/* Formulário de Edição */
+#formEdicao {
+    display: none;
+}
+
+#formEdicao.ativo {
+    display: block;
+}
+
+.acoes-formulario {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.acoes-formulario button {
+    flex: 1;
+}
+</style>
+</head>
+<body>
+
+<h2>Gestão de Fornecedores</h2>
+
+<!-- Formulário de Cadastro -->
+<div class="formulario" id="formularioCadastro">
+    <h3>Cadastrar Novo Fornecedor</h3>
+    
+    <form id="formFornecedor">
+        <div class="campo">
+            <label>Nome do Fornecedor *</label>
+            <input type="text" id="nome" required>
+        </div>
+        
+        <div class="campo">
+            <label>Site</label>
+            <input type="url" id="site" placeholder="https://exemplo.com.br">
+        </div>
+        
+        <div class="campo">
+            <label>Contatos</label>
+            <textarea id="contatos" placeholder="Telefones, emails, responsáveis, etc..."></textarea>
+        </div>
+        
+        <h3>Dados de Login</h3>
+        
+        <div class="campo">
+            <label>Usuário *</label>
+            <input type="text" id="usuario" required>
+        </div>
+        
+        <div class="campo">
+            <label>Senha *</label>
+            <input type="password" id="senha" required>
+        </div>
+        
+        <div class="campo">
+            <label>Senha Emergencial</label>
+            <input type="password" id="emergencial">
+        </div>
+        
+        <div class="campo">
+            <label>Link de Acesso</label>
+            <input type="url" id="link" placeholder="https://login.fornecedor.com.br">
+        </div>
+        
+        <button type="submit" class="btn-primario">Cadastrar Fornecedor</button>
+    </form>
+</div>
+
+<!-- Formulário de Edição -->
+<div class="formulario" id="formEdicao">
+    <h3>Editar Fornecedor</h3>
+    
+    <form id="formEditarFornecedor">
+        <input type="hidden" id="editIndice">
+        
+        <div class="campo">
+            <label>Nome do Fornecedor *</label>
+            <input type="text" id="editNome" required>
+        </div>
+        
+        <div class="campo">
+            <label>Site</label>
+            <input type="url" id="editSite">
+        </div>
+        
+        <div class="campo">
+            <label>Contatos</label>
+            <textarea id="editContatos"></textarea>
+        </div>
+        
+        <h3>Dados de Login</h3>
+        
+        <div class="campo">
+            <label>Usuário *</label>
+            <input type="text" id="editUsuario" required>
+        </div>
+        
+        <div class="campo">
+            <label>Senha *</label>
+            <input type="password" id="editSenha" required>
+        </div>
+        
+        <div class="campo">
+            <label>Senha Emergencial</label>
+            <input type="password" id="editEmergencial">
+        </div>
+        
+        <div class="campo">
+            <label>Link de Acesso</label>
+            <input type="url" id="editLink">
+        </div>
+        
+        <div class="acoes-formulario">
+            <button type="submit" class="btn-primario">Salvar Alterações</button>
+            <button type="button" class="btn-secundario" id="btnCancelarEdicao">Cancelar</button>
+        </div>
+    </form>
+</div>
+
+<!-- Barra de Busca -->
+<div class="barra-busca">
+    <select id="campoBusca">
+        <option value="nome">Nome</option>
+        <option value="site">Site</option>
+        <option value="contatos">Contatos</option>
+        <option value="usuario">Usuário</option>
+    </select>
+    
+    <input type="text" id="inputBusca" placeholder="Buscar fornecedor...">
+    
+    <button class="btn-primario" id="btnBuscar">Buscar</button>
+    <button class="btn-secundario" id="btnLimpar">Limpar</button>
+    <button class="btn-secundario" id="btnTodos">Ver Todos</button>
+</div>
+
+<!-- Lista de Fornecedores -->
+<div class="lista-fornecedores" id="listaFornecedores">
+    <div class="mensagem-vazia">Use a busca para localizar fornecedores</div>
+</div>
+
+<!-- Modal de Detalhes -->
+<div class="modal" id="modalDetalhes">
+    <div class="modal-conteudo">
+        <div class="modal-header">
+            <h3>Detalhes do Fornecedor</h3>
+            <button class="btn-fechar" id="btnFecharModal">&times;</button>
+        </div>
+        <div id="conteudoDetalhes"></div>
+    </div>
+</div>
+
+<script src="utils.js"></script>
+<script src="db-fornecedores.js"></script>
+<script>
+// ==================== INICIALIZAÇÃO ====================
+
+const elementos = {
+    formFornecedor: document.getElementById('formFornecedor'),
+    formEditarFornecedor: document.getElementById('formEditarFornecedor'),
+    formEdicao: document.getElementById('formEdicao'),
+    formularioCadastro: document.getElementById('formularioCadastro'),
+    listaFornecedores: document.getElementById('listaFornecedores'),
+    modalDetalhes: document.getElementById('modalDetalhes'),
+    conteudoDetalhes: document.getElementById('conteudoDetalhes')
+};
+
+// ==================== CADASTRO DE FORNECEDOR ====================
+
+elementos.formFornecedor.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const fornecedor = {
+        nome: document.getElementById('nome').value.trim(),
+        site: document.getElementById('site').value.trim(),
+        contatos: document.getElementById('contatos').value.trim(),
+        usuario: document.getElementById('usuario').value.trim(),
+        senha: document.getElementById('senha').value.trim(),
+        emergencial: document.getElementById('emergencial').value.trim(),
+        link: document.getElementById('link').value.trim()
+    };
+    
+    // Validação
+    const validacao = DB_FORNECEDORES.validar(fornecedor);
+    if (!validacao.valido) {
+        mostrarNotificacao(validacao.erros.join(', '), 'error');
+        return;
+    }
+    
+    // Adicionar
+    const resultado = DB_FORNECEDORES.adicionar(fornecedor);
+    
+    if (resultado.sucesso) {
+        mostrarNotificacao(resultado.mensagem, 'success');
+        elementos.formFornecedor.reset();
+    } else {
+        mostrarNotificacao(resultado.mensagem, 'error');
+    }
+});
+
+// ==================== RENDERIZAR LISTA ====================
+
+function renderizarFornecedores(fornecedores) {
+    elementos.listaFornecedores.innerHTML = '';
+    
+    if (!fornecedores || fornecedores.length === 0) {
+        elementos.listaFornecedores.innerHTML = '<div class="mensagem-vazia">Nenhum fornecedor encontrado</div>';
+        return;
+    }
+    
+    fornecedores.forEach((fornecedor) => {
+        const item = document.createElement('div');
+        item.className = 'fornecedor-item';
+        
+        const detalhes = [];
+        if (fornecedor.site) detalhes.push(`Site: ${fornecedor.site}`);
+        if (fornecedor.usuario) detalhes.push(`Usuário: ${fornecedor.usuario}`);
+        
+        item.innerHTML = `
+            <div class="fornecedor-info">
+                <div class="fornecedor-nome">${fornecedor.nome}</div>
+                <div class="fornecedor-detalhes">${detalhes.join(' • ')}</div>
+            </div>
+            <div class="fornecedor-acoes">
+                <button class="btn-secundario btn-pequeno" onclick="visualizarFornecedor(${fornecedor.indice})">
+                    Ver Detalhes
+                </button>
+                <button class="btn-secundario btn-pequeno" onclick="editarFornecedor(${fornecedor.indice})">
+                    Editar
+                </button>
+                <button class="btn-perigo btn-pequeno" onclick="excluirFornecedor(${fornecedor.indice})">
+                    Excluir
+                </button>
+            </div>
+        `;
+        
+        elementos.listaFornecedores.appendChild(item);
+    });
+}
+
+// ==================== BUSCAR FORNECEDORES ====================
+
+document.getElementById('btnBuscar').addEventListener('click', () => {
+    const campo = document.getElementById('campoBusca').value;
+    const valor = document.getElementById('inputBusca').value.trim();
+    
+    if (!valor) {
+        mostrarNotificacao('Digite algo para buscar', 'warning');
+        return;
+    }
+    
+    const resultados = DB_FORNECEDORES.buscar(campo, valor);
+    renderizarFornecedores(resultados);
+});
+
+document.getElementById('btnLimpar').addEventListener('click', () => {
+    document.getElementById('inputBusca').value = '';
+    elementos.listaFornecedores.innerHTML = '<div class="mensagem-vazia">Use a busca para localizar fornecedores</div>';
+});
+
+document.getElementById('btnTodos').addEventListener('click', () => {
+    const fornecedores = DB_FORNECEDORES.listarTodos().map((f, i) => ({ ...f, indice: i }));
+    renderizarFornecedores(fornecedores);
+});
+
+// Busca ao pressionar Enter
+document.getElementById('inputBusca').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.getElementById('btnBuscar').click();
+    }
+});
+
+// ==================== VISUALIZAR DETALHES ====================
+
+function visualizarFornecedor(indice) {
+    const fornecedor = DB_FORNECEDORES.buscarPorIndice(indice);
+    
+    if (!fornecedor) {
+        mostrarNotificacao('Fornecedor não encontrado', 'error');
+        return;
+    }
+    
+    elementos.conteudoDetalhes.innerHTML = `
+        <div class="detalhe-secao">
+            <h4>Informações Básicas</h4>
+            <div class="detalhe-linha">
+                <div class="detalhe-label">Nome</div>
+                <div class="detalhe-valor">${fornecedor.nome}</div>
+            </div>
+            ${fornecedor.site ? `
+            <div class="detalhe-linha">
+                <div class="detalhe-label">Site</div>
+                <div class="detalhe-valor"><a href="${fornecedor.site}" target="_blank">${fornecedor.site}</a></div>
+            </div>` : ''}
+            ${fornecedor.contatos ? `
+            <div class="detalhe-linha">
+                <div class="detalhe-label">Contatos</div>
+                <div class="detalhe-valor"><pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">${fornecedor.contatos}</pre></div>
+            </div>` : ''}
+        </div>
+        
+        <div class="detalhe-secao">
+            <h4>Dados de Login</h4>
+            <div class="detalhe-linha">
+                <div class="detalhe-label">Usuário</div>
+                <div class="detalhe-valor">${fornecedor.usuario}</div>
+            </div>
+            <div class="detalhe-linha">
+                <div class="detalhe-label">Senha</div>
+                <div class="senha-campo">
+                    <span id="senhaTexto">••••••••</span>
+                    <button class="btn-secundario btn-pequeno" onclick="toggleSenha('senhaTexto', '${fornecedor.senha}')">Mostrar</button>
+                </div>
+            </div>
+            ${fornecedor.emergencial ? `
+            <div class="detalhe-linha">
+                <div class="detalhe-label">Senha Emergencial</div>
+                <div class="senha-campo">
+                    <span id="senhaEmergencial">••••••••</span>
+                    <button class="btn-secundario btn-pequeno" onclick="toggleSenha('senhaEmergencial', '${fornecedor.emergencial}')">Mostrar</button>
+                </div>
+            </div>` : ''}
+            ${fornecedor.link ? `
+            <div class="detalhe-linha">
+                <div class="detalhe-label">Link de Acesso</div>
+                <div class="detalhe-valor"><a href="${fornecedor.link}" target="_blank">${fornecedor.link}</a></div>
+            </div>` : ''}
+        </div>
+    `;
+    
+    elementos.modalDetalhes.classList.add('ativo');
+}
+
+// Toggle mostrar/ocultar senha
+function toggleSenha(elementId, senha) {
+    const elemento = document.getElementById(elementId);
+    const botoes = document.querySelectorAll(`#${elementId} + .senha-campo button, button[onclick*="${elementId}"]`);
+    const botao = event.target;
+    
+    if (elemento.textContent === '••••••••') {
+        elemento.textContent = senha;
+        botao.textContent = 'Ocultar';
+    } else {
+        elemento.textContent = '••••••••';
+        botao.textContent = 'Mostrar';
+    }
+}
+
+document.getElementById('btnFecharModal').addEventListener('click', () => {
+    elementos.modalDetalhes.classList.remove('ativo');
+});
+
+elementos.modalDetalhes.addEventListener('click', (e) => {
+    if (e.target === elementos.modalDetalhes) {
+        elementos.modalDetalhes.classList.remove('ativo');
+    }
+});
+
+// ==================== EDITAR FORNECEDOR ====================
+
+function editarFornecedor(indice) {
+    const fornecedor = DB_FORNECEDORES.buscarPorIndice(indice);
+    
+    if (!fornecedor) {
+        mostrarNotificacao('Fornecedor não encontrado', 'error');
+        return;
+    }
+    
+    // Preencher formulário
+    document.getElementById('editIndice').value = indice;
+    document.getElementById('editNome').value = fornecedor.nome || '';
+    document.getElementById('editSite').value = fornecedor.site || '';
+    document.getElementById('editContatos').value = fornecedor.contatos || '';
+    document.getElementById('editUsuario').value = fornecedor.usuario || '';
+    document.getElementById('editSenha').value = fornecedor.senha || '';
+    document.getElementById('editEmergencial').value = fornecedor.emergencial || '';
+    document.getElementById('editLink').value = fornecedor.link || '';
+    
+    // Mostrar formulário de edição
+    elementos.formEdicao.classList.add('ativo');
+    elementos.formularioCadastro.style.display = 'none';
+    
+    // Scroll para o formulário
+    elementos.formEdicao.scrollIntoView({ behavior: 'smooth' });
+}
+
+elementos.formEditarFornecedor.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const indice = parseInt(document.getElementById('editIndice').value);
+    
+    const fornecedorAtualizado = {
+        nome: document.getElementById('editNome').value.trim(),
+        site: document.getElementById('editSite').value.trim(),
+        contatos: document.getElementById('editContatos').value.trim(),
+        usuario: document.getElementById('editUsuario').value.trim(),
+        senha: document.getElementById('editSenha').value.trim(),
+        emergencial: document.getElementById('editEmergencial').value.trim(),
+        link: document.getElementById('editLink').value.trim()
+    };
+    
+    // Validação
+    const validacao = DB_FORNECEDORES.validar(fornecedorAtualizado);
+    if (!validacao.valido) {
+        mostrarNotificacao(validacao.erros.join(', '), 'error');
+        return;
+    }
+    
+    // Atualizar
+    const resultado = DB_FORNECEDORES.atualizar(indice, fornecedorAtualizado);
+    
+    if (resultado.sucesso) {
+        mostrarNotificacao(resultado.mensagem, 'success');
+        cancelarEdicao();
+        
+        // Atualizar lista se estiver visível
+        if (elementos.listaFornecedores.children.length > 0 && 
+            !elementos.listaFornecedores.querySelector('.mensagem-vazia')) {
+            document.getElementById('btnTodos').click();
+        }
+    } else {
+        mostrarNotificacao(resultado.mensagem, 'error');
+    }
+});
+
+document.getElementById('btnCancelarEdicao').addEventListener('click', cancelarEdicao);
+
+function cancelarEdicao() {
+    elementos.formEdicao.classList.remove('ativo');
+    elementos.formularioCadastro.style.display = 'block';
+    elementos.formEditarFornecedor.reset();
+}
+
+// ==================== EXCLUIR FORNECEDOR ====================
+
+function excluirFornecedor(indice) {
+    const fornecedor = DB_FORNECEDORES.buscarPorIndice(indice);
+    
+    if (!fornecedor) {
+        mostrarNotificacao('Fornecedor não encontrado', 'error');
+        return;
+    }
+    
+    if (confirm(`Deseja realmente excluir o fornecedor "${fornecedor.nome}"?`)) {
+        const resultado = DB_FORNECEDORES.remover(indice);
+        
+        if (resultado.sucesso) {
+            mostrarNotificacao(resultado.mensagem, 'success');
+            
+            // Atualizar lista
+            if (elementos.listaFornecedores.children.length > 0 && 
+                !elementos.listaFornecedores.querySelector('.mensagem-vazia')) {
+                document.getElementById('btnTodos').click();
+            }
+        } else {
+            mostrarNotificacao(resultado.mensagem, 'error');
+        }
+    }
+}
+
+console.log('Módulo de fornecedores carregado');
+</script>
+
+</body>
+</html>

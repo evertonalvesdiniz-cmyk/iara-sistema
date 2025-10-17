@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Clientes</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.95);
+    min-height: 100vh;
+}
+
+h2 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 24px;
+}
+
+h3 {
+    color: #4a5568;
+    margin: 20px 0 15px;
+    font-size: 18px;
+}
+
+/* Formulário */
+.formulario {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.campo {
+    margin-bottom: 15px;
+}
+
+.campo label {
+    display: block;
+    margin-bottom: 5px;
+    color: #4a5568;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.campo input,
+.campo select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border 0.3s;
+}
+
+.campo input:focus {
+    outline: none;
+    border-color: #ccbfb5;
+}
+
+.campo-inline {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.campo-inline input {
+    flex: 1;
+}
+
+.campo-inline button {
+    padding: 10px 16px;
+    white-space: nowrap;
+}
+
+.aviso {
+    color: #e53e3e;
+    font-size: 13px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Botões */
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primario {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.btn-primario:hover {
+    background-color: #1a252f;
+    transform: translateY(-2px);
+}
+
+.btn-secundario {
+    background-color: #ccbfb5;
+    color: #2c3e50;
+}
+
+.btn-secundario:hover {
+    background-color: #b8ada3;
+}
+
+.btn-perigo {
+    background-color: #e53e3e;
+    color: white;
+}
+
+.btn-perigo:hover {
+    background-color: #c53030;
+}
+
+.btn-pequeno {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+/* Busca */
+.barra-busca {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.barra-busca select,
+.barra-busca input {
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.barra-busca select {
+    min-width: 150px;
+}
+
+.barra-busca input {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Lista de Clientes */
+.lista-clientes {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.cliente-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.cliente-item:hover {
+    background: #f7fafc;
+}
+
+.cliente-item:last-child {
+    border-bottom: none;
+}
+
+.cliente-info {
+    flex: 1;
+}
+
+.cliente-nome {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.cliente-detalhes {
+    font-size: 13px;
+    color: #718096;
+}
+
+.cliente-acoes {
+    display: flex;
+    gap: 8px;
+}
+
+.mensagem-vazia {
+    padding: 40px 20px;
+    text-align: center;
+    color: #718096;
+}
+
+/* Modal de Detalhes */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal.ativo {
+    display: flex;
+}
+
+.modal-conteudo {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h3 {
+    margin: 0;
+}
+
+.btn-fechar {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #718096;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.detalhe-linha {
+    padding: 10px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.detalhe-linha:last-child {
+    border-bottom: none;
+}
+
+.detalhe-label {
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 3px;
+    font-size: 13px;
+}
+
+.detalhe-valor {
+    color: #2d3748;
+}
+
+/* Formulário de Edição */
+#formEdicao {
+    display: none;
+}
+
+#formEdicao.ativo {
+    display: block;
+}
+
+.acoes-formulario {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.acoes-formulario button {
+    flex: 1;
+}
+</style>
+</head>
+<body>
+
+<h2>Gestão de Clientes</h2>
+
+<!-- Formulário de Cadastro -->
+<div class="formulario" id="formularioCadastro">
+    <h3>Cadastrar Novo Cliente</h3>
+    
+    <form id="formCliente">
+        <div class="campo">
+            <label>Nome Completo *</label>
+            <input type="text" id="nome" required>
+        </div>
+        
+        <div class="campo">
+            <label>Data de Nascimento</label>
+            <input type="text" id="nascimento" placeholder="DD/MM/AAAA">
+        </div>
+        
+        <div class="campo">
+            <label>CPF</label>
+            <input type="text" id="cpf" placeholder="000.000.000-00">
+        </div>
+        
+        <div class="campo">
+            <label>RG</label>
+            <input type="text" id="rg">
+        </div>
+        
+        <div class="campo">
+            <label>Passaporte</label>
+            <input type="text" id="passaporte">
+        </div>
+        
+        <div class="campo">
+            <label>Validade do Passaporte</label>
+            <input type="text" id="validade" placeholder="DD/MM/AAAA">
+            <span class="aviso" id="avisoValidade"></span>
+        </div>
+        
+        <div class="campo">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="exemplo@email.com">
+        </div>
+        
+        <div class="campo">
+            <label>Telefone</label>
+            <input type="text" id="telefone" placeholder="(00) 00000-0000">
+        </div>
+        
+        <h3>Endereço</h3>
+        
+        <div class="campo-inline">
+            <div class="campo" style="flex: 1;">
+                <label>CEP</label>
+                <input type="text" id="cep" placeholder="00000-000">
+            </div>
+            <button type="button" class="btn-secundario" id="btnBuscarCEP">Buscar CEP</button>
+        </div>
+        
+        <div class="campo">
+            <label>Rua</label>
+            <input type="text" id="rua">
+        </div>
+        
+        <div class="campo">
+            <label>Número</label>
+            <input type="text" id="numero">
+        </div>
+        
+        <div class="campo">
+            <label>Complemento</label>
+            <input type="text" id="complemento">
+        </div>
+        
+        <div class="campo">
+            <label>Bairro</label>
+            <input type="text" id="bairro">
+        </div>
+        
+        <div class="campo">
+            <label>Cidade</label>
+            <input type="text" id="cidade">
+        </div>
+        
+        <div class="campo">
+            <label>Estado</label>
+            <input type="text" id="estado" placeholder="PR">
+        </div>
+        
+        <div class="campo">
+            <label>Contato de Emergência</label>
+            <input type="text" id="contatoEmergencial" placeholder="Nome e telefone">
+        </div>
+        
+        <button type="submit" class="btn-primario">Cadastrar Cliente</button>
+    </form>
+</div>
+
+<!-- Formulário de Edição (oculto inicialmente) -->
+<div class="formulario" id="formEdicao">
+    <h3>Editar Cliente</h3>
+    
+    <form id="formEditarCliente">
+        <input type="hidden" id="editIndice">
+        
+        <div class="campo">
+            <label>Nome Completo *</label>
+            <input type="text" id="editNome" required>
+        </div>
+        
+        <div class="campo">
+            <label>Data de Nascimento</label>
+            <input type="text" id="editNascimento" placeholder="DD/MM/AAAA">
+        </div>
+        
+        <div class="campo">
+            <label>CPF</label>
+            <input type="text" id="editCpf" placeholder="000.000.000-00">
+        </div>
+        
+        <div class="campo">
+            <label>RG</label>
+            <input type="text" id="editRg">
+        </div>
+        
+        <div class="campo">
+            <label>Passaporte</label>
+            <input type="text" id="editPassaporte">
+        </div>
+        
+        <div class="campo">
+            <label>Validade do Passaporte</label>
+            <input type="text" id="editValidade" placeholder="DD/MM/AAAA">
+            <span class="aviso" id="avisoValidadeEdit"></span>
+        </div>
+        
+        <div class="campo">
+            <label>Email</label>
+            <input type="email" id="editEmail">
+        </div>
+        
+        <div class="campo">
+            <label>Telefone</label>
+            <input type="text" id="editTelefone">
+        </div>
+        
+        <h3>Endereço</h3>
+        
+        <div class="campo-inline">
+            <div class="campo" style="flex: 1;">
+                <label>CEP</label>
+                <input type="text" id="editCep">
+            </div>
+            <button type="button" class="btn-secundario" id="btnBuscarCEPEdit">Buscar CEP</button>
+        </div>
+        
+        <div class="campo">
+            <label>Rua</label>
+            <input type="text" id="editRua">
+        </div>
+        
+        <div class="campo">
+            <label>Número</label>
+            <input type="text" id="editNumero">
+        </div>
+        
+        <div class="campo">
+            <label>Complemento</label>
+            <input type="text" id="editComplemento">
+        </div>
+        
+        <div class="campo">
+            <label>Bairro</label>
+            <input type="text" id="editBairro">
+        </div>
+        
+        <div class="campo">
+            <label>Cidade</label>
+            <input type="text" id="editCidade">
+        </div>
+        
+        <div class="campo">
+            <label>Estado</label>
+            <input type="text" id="editEstado">
+        </div>
+        
+        <div class="campo">
+            <label>Contato de Emergência</label>
+            <input type="text" id="editContatoEmergencial">
+        </div>
+        
+        <div class="acoes-formulario">
+            <button type="submit" class="btn-primario">Salvar Alterações</button>
+            <button type="button" class="btn-secundario" id="btnCancelarEdicao">Cancelar</button>
+        </div>
+    </form>
+</div>
+
+<!-- Barra de Busca -->
+<div class="barra-busca">
+    <select id="campoBusca">
+        <option value="nome">Nome</option>
+        <option value="cpf">CPF</option>
+        <option value="rg">RG</option>
+        <option value="passaporte">Passaporte</option>
+        <option value="email">Email</option>
+        <option value="telefone">Telefone</option>
+    </select>
+    
+    <input type="text" id="inputBusca" placeholder="Buscar cliente...">
+    
+    <button class="btn-primario" id="btnBuscar">Buscar</button>
+    <button class="btn-secundario" id="btnLimpar">Limpar</button>
+    <button class="btn-secundario" id="btnTodos">Ver Todos</button>
+</div>
+
+<!-- Lista de Clientes -->
+<div class="lista-clientes" id="listaClientes">
+    <div class="mensagem-vazia">Use a busca para localizar clientes</div>
+</div>
+
+<!-- Modal de Detalhes -->
+<div class="modal" id="modalDetalhes">
+    <div class="modal-conteudo">
+        <div class="modal-header">
+            <h3>Detalhes do Cliente</h3>
+            <button class="btn-fechar" id="btnFecharModal">&times;</button>
+        </div>
+        <div id="conteudoDetalhes"></div>
+    </div>
+</div>
+
+<script src="utils.js"></script>
+<script src="db-clientes.js"></script>
+<script>
+// ==================== INICIALIZAÇÃO ====================
+
+const elementos = {
+    formCliente: document.getElementById('formCliente'),
+    formEditarCliente: document.getElementById('formEditarCliente'),
+    formEdicao: document.getElementById('formEdicao'),
+    formularioCadastro: document.getElementById('formularioCadastro'),
+    listaClientes: document.getElementById('listaClientes'),
+    modalDetalhes: document.getElementById('modalDetalhes'),
+    conteudoDetalhes: document.getElementById('conteudoDetalhes')
+};
+
+// Aplicar máscaras
+aplicarMascaraData(document.getElementById('nascimento'));
+aplicarMascaraData(document.getElementById('validade'));
+aplicarMascaraCPF(document.getElementById('cpf'));
+aplicarMascaraTelefone(document.getElementById('telefone'));
+aplicarMascaraCEP(document.getElementById('cep'));
+
+aplicarMascaraData(document.getElementById('editNascimento'));
+aplicarMascaraData(document.getElementById('editValidade'));
+aplicarMascaraCPF(document.getElementById('editCpf'));
+aplicarMascaraTelefone(document.getElementById('editTelefone'));
+aplicarMascaraCEP(document.getElementById('editCep'));
+
+// Verificar validade de passaporte
+document.getElementById('validade').addEventListener('input', () => {
+    const resultado = verificarValidadePassaporte(document.getElementById('validade').value);
+    document.getElementById('avisoValidade').textContent = resultado.mensagem;
+});
+
+document.getElementById('editValidade').addEventListener('input', () => {
+    const resultado = verificarValidadePassaporte(document.getElementById('editValidade').value);
+    document.getElementById('avisoValidadeEdit').textContent = resultado.mensagem;
+});
+
+// ==================== CADASTRO DE CLIENTE ====================
+
+elementos.formCliente.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const cliente = {
+        nome: document.getElementById('nome').value.trim(),
+        nascimento: document.getElementById('nascimento').value,
+        cpf: document.getElementById('cpf').value,
+        rg: document.getElementById('rg').value,
+        passaporte: document.getElementById('passaporte').value,
+        validade: document.getElementById('validade').value,
+        email: document.getElementById('email').value,
+        telefone: document.getElementById('telefone').value,
+        enderecoCEP: document.getElementById('cep').value,
+        enderecoRua: document.getElementById('rua').value,
+        enderecoNumero: document.getElementById('numero').value,
+        enderecoComplemento: document.getElementById('complemento').value,
+        enderecoBairro: document.getElementById('bairro').value,
+        enderecoCidade: document.getElementById('cidade').value,
+        enderecoEstado: document.getElementById('estado').value,
+        contatoEmergencial: document.getElementById('contatoEmergencial').value
+    };
+    
+    // Validação
+    const validacao = DB_CLIENTES.validar(cliente);
+    if (!validacao.valido) {
+        mostrarNotificacao(validacao.erros.join(', '), 'error');
+        return;
+    }
+    
+    // Adicionar
+    const resultado = DB_CLIENTES.adicionar(cliente);
+    
+    if (resultado.sucesso) {
+        mostrarNotificacao(resultado.mensagem, 'success');
+        elementos.formCliente.reset();
+        document.getElementById('avisoValidade').textContent = '';
+    } else {
+        mostrarNotificacao(resultado.mensagem, 'error');
+    }
+});
+
+// ==================== BUSCA DE CEP ====================
+
+document.getElementById('btnBuscarCEP').addEventListener('click', () => {
+    buscarCEP(
+        document.getElementById('cep'),
+        document.getElementById('rua'),
+        document.getElementById('bairro'),
+        document.getElementById('cidade'),
+        document.getElementById('estado')
+    );
+});
+
+document.getElementById('btnBuscarCEPEdit').addEventListener('click', () => {
+    buscarCEP(
+        document.getElementById('editCep'),
+        document.getElementById('editRua'),
+        document.getElementById('editBairro'),
+        document.getElementById('editCidade'),
+        document.getElementById('editEstado')
+    );
+});
+
+// ==================== RENDERIZAR LISTA ====================
+
+function renderizarClientes(clientes) {
+    elementos.listaClientes.innerHTML = '';
+    
+    if (!clientes || clientes.length === 0) {
+        elementos.listaClientes.innerHTML = '<div class="mensagem-vazia">Nenhum cliente encontrado</div>';
+        return;
+    }
+    
+    clientes.forEach((cliente) => {
+        const item = document.createElement('div');
+        item.className = 'cliente-item';
+        
+        const detalhes = [];
+        if (cliente.cpf) detalhes.push(`CPF: ${cliente.cpf}`);
+        if (cliente.email) detalhes.push(cliente.email);
+        if (cliente.telefone) detalhes.push(cliente.telefone);
+        
+        item.innerHTML = `
+            <div class="cliente-info">
+                <div class="cliente-nome">${cliente.nome}</div>
+                <div class="cliente-detalhes">${detalhes.join(' • ')}</div>
+            </div>
+            <div class="cliente-acoes">
+                <button class="btn-secundario btn-pequeno" onclick="visualizarCliente(${cliente.indice})">
+                    Ver Detalhes
+                </button>
+                <button class="btn-secundario btn-pequeno" onclick="editarCliente(${cliente.indice})">
+                    Editar
+                </button>
+                <button class="btn-perigo btn-pequeno" onclick="excluirCliente(${cliente.indice})">
+                    Excluir
+                </button>
+            </div>
+        `;
+        
+        elementos.listaClientes.appendChild(item);
+    });
+}
+
+// ==================== BUSCAR CLIENTES ====================
+
+document.getElementById('btnBuscar').addEventListener('click', () => {
+    const campo = document.getElementById('campoBusca').value;
+    const valor = document.getElementById('inputBusca').value.trim();
+    
+    if (!valor) {
+        mostrarNotificacao('Digite algo para buscar', 'warning');
+        return;
+    }
+    
+    const resultados = DB_CLIENTES.buscar(campo, valor);
+    renderizarClientes(resultados);
+});
+
+document.getElementById('btnLimpar').addEventListener('click', () => {
+    document.getElementById('inputBusca').value = '';
+    elementos.listaClientes.innerHTML = '<div class="mensagem-vazia">Use a busca para localizar clientes</div>';
+});
+
+document.getElementById('btnTodos').addEventListener('click', () => {
+    const clientes = DB_CLIENTES.listarTodos().map((c, i) => ({ ...c, indice: i }));
+    renderizarClientes(clientes);
+});
+
+// Busca ao pressionar Enter
+document.getElementById('inputBusca').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.getElementById('btnBuscar').click();
+    }
+});
+
+// ==================== VISUALIZAR DETALHES ====================
+
+function visualizarCliente(indice) {
+    const cliente = DB_CLIENTES.buscarPorIndice(indice);
+    
+    if (!cliente) {
+        mostrarNotificacao('Cliente não encontrado', 'error');
+        return;
+    }
+    
+    const validadePassaporte = verificarValidadePassaporte(cliente.validade);
+    
+    elementos.conteudoDetalhes.innerHTML = `
+        <div class="detalhe-linha">
+            <div class="detalhe-label">Nome</div>
+            <div class="detalhe-valor">${cliente.nome}</div>
+        </div>
+        ${cliente.nascimento ? `
+        <div class="detalhe-linha">
+            <div class="detalhe-label">Data de Nascimento</div>
+            <div class="detalhe-valor">${cliente.nascimento}</div>
+        </div>` : ''}
+        ${cliente.cpf ? `
+        <div class="detalhe-linha">
+            <div class="detalhe-label">CPF</div>
+            <div class="detalhe-valor">${cliente.cpf}</div>
+        </div>` : ''}
+        ${cliente.rg ? `
+        <div class="detalhe-linha">
+            <div class="detalhe-label">RG</div>
+            <div class="detalhe-valor">${cliente.rg}</div>
+        </div>` : ''}
+        ${cliente.passaporte ? `
+        <div class="detalhe-linha">
+            <div class="detalhe-label">Passaporte</div>
+            <div class="detalhe-valor">${cliente.passaporte}</div>
+        </div>` : ''}
+        ${cliente.validade ? `
+        <div class="detalhe-linha">
+            <div class="detalhe-label">Validade do Passaporte</div>
+            <div class="detalhe-valor">${cliente.validade} ${validadePassaporte.mensagem}</div>
+        </div>` : ''}
+        ${cliente.email ? `
+        <div class="detalhe-linha">
+            <div class="detalhe-label">Email</div>
+            <div class="detalhe-valor">${cliente.email}</div>
+        </div>` : ''}
+        ${cliente.telefone ? `
+        <div class="detalhe-linha">
+            <div class="detalhe-label">Telefone</div>
+            <div class="detalhe-valor">${cliente.telefone}</div>
+        </div>` : ''}
+        ${cliente.enderecoCEP || cliente.enderecoRua ? `
+        <div class="detalhe-linha">
+            <div class="detalhe-label">Endereço</div>
+            <div class="detalhe-valor">
+                ${cliente.enderecoRua ? cliente.enderecoRua : ''} 
+                ${cliente.enderecoNumero ? ', ' + cliente.enderecoNumero : ''}
+                ${cliente.enderecoComplemento ? ' - ' + cliente.enderecoComplemento : ''}<br>
+                ${cliente.enderecoBairro ? cliente.enderecoBairro : ''}
+                ${cliente.enderecoCidade ? ' - ' + cliente.enderecoCidade : ''}
+                ${cliente.enderecoEstado ? '/' + cliente.enderecoEstado : ''}<br>
+                ${cliente.enderecoCEP ? 'CEP: ' + cliente.enderecoCEP : ''}
+            </div>
+        </div>` : ''}
+        ${cliente.contatoEmergencial ? `
+        <div class="detalhe-linha">
+            <div class="detalhe-label">Contato de Emergência</div>
+            <div class="detalhe-valor">${cliente.contatoEmergencial}</div>
+        </div>` : ''}
+    `;
+    
+    elementos.modalDetalhes.classList.add('ativo');
+}
+
+document.getElementById('btnFecharModal').addEventListener('click', () => {
+    elementos.modalDetalhes.classList.remove('ativo');
+});
+
+elementos.modalDetalhes.addEventListener('click', (e) => {
+    if (e.target === elementos.modalDetalhes) {
+        elementos.modalDetalhes.classList.remove('ativo');
+    }
+});
+
+// ==================== EDITAR CLIENTE ====================
+
+function editarCliente(indice) {
+    const cliente = DB_CLIENTES.buscarPorIndice(indice);
+    
+    if (!cliente) {
+        mostrarNotificacao('Cliente não encontrado', 'error');
+        return;
+    }
+    
+    // Preencher formulário
+    document.getElementById('editIndice').value = indice;
+    document.getElementById('editNome').value = cliente.nome || '';
+    document.getElementById('editNascimento').value = cliente.nascimento || '';
+    document.getElementById('editCpf').value = cliente.cpf || '';
+    document.getElementById('editRg').value = cliente.rg || '';
+    document.getElementById('editPassaporte').value = cliente.passaporte || '';
+    document.getElementById('editValidade').value = cliente.validade || '';
+    document.getElementById('editEmail').value = cliente.email || '';
+    document.getElementById('editTelefone').value = cliente.telefone || '';
+    document.getElementById('editCep').value = cliente.enderecoCEP || '';
+    document.getElementById('editRua').value = cliente.enderecoRua || '';
+    document.getElementById('editNumero').value = cliente.enderecoNumero || '';
+    document.getElementById('editComplemento').value = cliente.enderecoComplemento || '';
+    document.getElementById('editBairro').value = cliente.enderecoBairro || '';
+    document.getElementById('editCidade').value = cliente.enderecoCidade || '';
+    document.getElementById('editEstado').value = cliente.enderecoEstado || '';
+    document.getElementById('editContatoEmergencial').value = cliente.contatoEmergencial || '';
+    
+    // Mostrar formulário de edição
+    elementos.formEdicao.classList.add('ativo');
+    elementos.formularioCadastro.style.display = 'none';
+    
+    // Scroll para o formulário
+    elementos.formEdicao.scrollIntoView({ behavior: 'smooth' });
+}
+
+elementos.formEditarCliente.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const indice = parseInt(document.getElementById('editIndice').value);
+    
+    const clienteAtualizado = {
+        nome: document.getElementById('editNome').value.trim(),
+        nascimento: document.getElementById('editNascimento').value,
+        cpf: document.getElementById('editCpf').value,
+        rg: document.getElementById('editRg').value,
+        passaporte: document.getElementById('editPassaporte').value,
+        validade: document.getElementById('editValidade').value,
+        email: document.getElementById('editEmail').value,
+        telefone: document.getElementById('editTelefone').value,
+        enderecoCEP: document.getElementById('editCep').value,
+        enderecoRua: document.getElementById('editRua').value,
+        enderecoNumero: document.getElementById('editNumero').value,
+        enderecoComplemento: document.getElementById('editComplemento').value,
+        enderecoBairro: document.getElementById('editBairro').value,
+        enderecoCidade: document.getElementById('editCidade').value,
+        enderecoEstado: document.getElementById('editEstado').value,
+        contatoEmergencial: document.getElementById('editContatoEmergencial').value
+    };
+    
+    // Validação
+    const validacao = DB_CLIENTES.validar(clienteAtualizado);
+    if (!validacao.valido) {
+        mostrarNotificacao(validacao.erros.join(', '), 'error');
+        return;
+    }
+    
+    // Atualizar
+    const resultado = DB_CLIENTES.atualizar(indice, clienteAtualizado);
+    
+    if (resultado.sucesso) {
+        mostrarNotificacao(resultado.mensagem, 'success');
+        cancelarEdicao();
+        
+        // Atualizar lista se estiver visível
+        if (elementos.listaClientes.children.length > 0 && 
+            !elementos.listaClientes.querySelector('.mensagem-vazia')) {
+            document.getElementById('btnTodos').click();
+        }
+    } else {
+        mostrarNotificacao(resultado.mensagem, 'error');
+    }
+});
+
+document.getElementById('btnCancelarEdicao').addEventListener('click', cancelarEdicao);
+
+function cancelarEdicao() {
+    elementos.formEdicao.classList.remove('ativo');
+    elementos.formularioCadastro.style.display = 'block';
+    elementos.formEditarCliente.reset();
+    document.getElementById('avisoValidadeEdit').textContent = '';
+}
+
+// ==================== EXCLUIR CLIENTE ====================
+
+function excluirCliente(indice) {
+    const cliente = DB_CLIENTES.buscarPorIndice(indice);
+    
+    if (!cliente) {
+        mostrarNotificacao('Cliente não encontrado', 'error');
+        return;
+    }
+    
+    if (confirm(`Deseja realmente excluir o cliente "${cliente.nome}"?`)) {
+        const resultado = DB_CLIENTES.remover(indice);
+        
+        if (resultado.sucesso) {
+            mostrarNotificacao(resultado.mensagem, 'success');
+            
+            // Atualizar lista
+            if (elementos.listaClientes.children.length > 0 && 
+                !elementos.listaClientes.querySelector('.mensagem-vazia')) {
+                document.getElementById('btnTodos').click();
+            }
+        } else {
+            mostrarNotificacao(resultado.mensagem, 'error');
+        }
+    }
+}
+
+console.log('Módulo de clientes carregado');
+</script>
+
+</body>
+</html>

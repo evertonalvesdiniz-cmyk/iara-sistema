@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manutenção do Sistema</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.95);
+    min-height: 100vh;
+}
+
+h2 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 24px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.login-card {
+    max-width: 400px;
+    margin: 100px auto;
+    text-align: center;
+}
+
+.login-card h3 {
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.campo {
+    margin-bottom: 15px;
+}
+
+.campo input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+    margin: 5px 0;
+}
+
+.btn-primario {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.btn-primario:hover {
+    background-color: #1a252f;
+}
+
+.btn-perigo {
+    background-color: #e53e3e;
+    color: white;
+}
+
+.btn-perigo:hover {
+    background-color: #c53030;
+}
+
+.btn-sucesso {
+    background-color: #48bb78;
+    color: white;
+}
+
+.btn-sucesso:hover {
+    background-color: #38a169;
+}
+
+.opcoes-manutencao {
+    display: none;
+}
+
+.opcoes-manutencao.ativo {
+    display: block;
+}
+
+.aviso {
+    background: #feebc8;
+    border-left: 4px solid #ed8936;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    color: #c05621;
+    font-size: 14px;
+}
+
+.aviso-critico {
+    background: #fed7d7;
+    border-left: 4px solid #e53e3e;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    color: #c53030;
+    font-size: 14px;
+}
+
+.rodape {
+    margin-top: 50px;
+    text-align: center;
+    color: #718096;
+    font-size: 14px;
+}
+
+.rodape a {
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.info-sistema {
+    background: #edf2f7;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.info-sistema p {
+    margin: 8px 0;
+    color: #4a5568;
+    font-size: 14px;
+}
+
+#fileInput {
+    display: none;
+}
+
+.icon-grande {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+</style>
+</head>
+<body>
+
+<h2>Manutenção do Sistema</h2>
+
+<!-- Tela de Login -->
+<div class="card login-card" id="telaLogin">
+    <h3>🔒 Acesso Restrito</h3>
+    <p style="color: #718096; margin-bottom: 20px;">Digite a senha para acessar as opções de manutenção</p>
+    
+    <form id="formLogin">
+        <div class="campo">
+            <input type="password" id="senhaInput" placeholder="Senha" required>
+        </div>
+        <button type="submit" class="btn-primario">Acessar</button>
+    </form>
+</div>
+
+<!-- Opções de Manutenção -->
+<div class="opcoes-manutencao" id="opcoesManutencao">
+    
+    <div class="card">
+        <h3 style="color: #2c3e50; margin-bottom: 15px;">📊 Informações do Sistema</h3>
+        <div class="info-sistema">
+            <p><strong>Versão:</strong> 2.0 (Refatorado)</p>
+            <p><strong>Clientes cadastrados:</strong> <span id="totalClientes">0</span></p>
+            <p><strong>Fornecedores cadastrados:</strong> <span id="totalFornecedores">0</span></p>
+            <p><strong>Vendas cadastradas:</strong> <span id="totalVendas">0</span></p>
+            <p><strong>Contas financeiras:</strong> <span id="totalContas">0</span></p>
+            <p><strong>Compromissos agendados:</strong> <span id="totalCompromissos">0</span></p>
+            <p><strong>Último backup:</strong> <span id="ultimoBackup">Nunca</span></p>
+        </div>
+        <button class="btn-primario" id="btnAtualizarInfo">Atualizar Informações</button>
+    </div>
+    
+    <div class="card">
+        <div class="icon-grande" style="text-align: center;">💾</div>
+        <h3 style="color: #2c3e50; margin-bottom: 15px; text-align: center;">Backup Completo</h3>
+        <p style="color: #718096; margin-bottom: 20px; text-align: center;">
+            Faça backup regular dos seus dados para não perder informações importantes
+        </p>
+        
+        <div class="aviso">
+            📥 O backup exporta TODOS os dados (clientes, fornecedores, vendas e financeiro) em um único arquivo JSON.
+        </div>
+        
+        <button class="btn-sucesso" id="btnExportar">📥 Exportar Backup Completo</button>
+        <button class="btn-primario" id="btnImportar">📤 Importar Backup</button>
+        <input type="file" id="fileInput" accept=".json">
+    </div>
+    
+    <div class="card">
+        <div class="icon-grande" style="text-align: center;">🗑️</div>
+        <h3 style="color: #2c3e50; margin-bottom: 15px; text-align: center;">Limpeza Total do Sistema</h3>
+        
+        <div class="aviso-critico">
+            <strong>⚠️ ATENÇÃO EXTREMA!</strong><br><br>
+            Esta ação irá deletar PERMANENTEMENTE:<br>
+            • Todos os clientes<br>
+            • Todos os fornecedores<br>
+            • Todas as vendas<br>
+            • Todos os dados financeiros<br>
+            • Todos os compromissos da agenda<br><br>
+            <strong>Esta ação NÃO pode ser desfeita!</strong>
+        </div>
+        
+        <button class="btn-perigo" id="btnLimparTudo">🗑️ Limpar TUDO do Sistema</button>
+    </div>
+    
+</div>
+
+<div class="rodape">
+    <p><strong>Desenvolvedor:</strong> Everton Diniz</p>
+    <p>WhatsApp: (44) 99765-6573</p>
+    <p>Email: <a href="mailto:evertonalvesdiniz@gmail.com">evertonalvesdiniz@gmail.com</a></p>
+</div>
+
+<script src="utils.js"></script>
+<script src="db-clientes.js"></script>
+<script src="db-fornecedores.js"></script>
+<script src="db-vendas.js"></script>
+<script src="db-financeiro.js"></script>
+<script>
+// ==================== DB AGENDA ====================
+
+const DB_AGENDA = {
+    STORAGE_KEY: "dbAgenda_v1",
+    
+    carregar() {
+        try {
+            const dados = localStorage.getItem(this.STORAGE_KEY);
+            return dados ? JSON.parse(dados) : [];
+        } catch (erro) {
+            console.error("Erro ao carregar agenda:", erro);
+            return [];
+        }
+    },
+    
+    salvar(compromissos) {
+        try {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(compromissos));
+            return true;
+        } catch (erro) {
+            console.error("Erro ao salvar agenda:", erro);
+            return false;
+        }
+    },
+    
+    limparTudo() {
+        return this.salvar([]);
+    }
+};
+
+// ==================== LOGIN ====================
+
+const SENHA_MANUTENCAO = "04061996";
+
+document.getElementById('formLogin').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const senha = document.getElementById('senhaInput').value;
+    
+    if (senha === SENHA_MANUTENCAO) {
+        document.getElementById('telaLogin').style.display = 'none';
+        document.getElementById('opcoesManutencao').classList.add('ativo');
+        mostrarNotificacao('Acesso autorizado', 'success');
+        atualizarInformacoes();
+    } else {
+        mostrarNotificacao('Senha incorreta', 'error');
+        document.getElementById('senhaInput').value = '';
+    }
+});
+
+// ==================== INFORMAÇÕES DO SISTEMA ====================
+
+function atualizarInformacoes() {
+    document.getElementById('totalClientes').textContent = DB_CLIENTES.listarTodos().length;
+    document.getElementById('totalFornecedores').textContent = DB_FORNECEDORES.listarTodos().length;
+    document.getElementById('totalVendas').textContent = DB_VENDAS.listarTodas().length;
+    
+    const dadosFinanceiros = DB_FINANCEIRO.carregar();
+    const totalContas = (dadosFinanceiros.contasPagar?.length || 0) + (dadosFinanceiros.contasReceber?.length || 0);
+    document.getElementById('totalContas').textContent = totalContas;
+    
+    const totalCompromissos = DB_AGENDA.carregar().length;
+    document.getElementById('totalCompromissos').textContent = totalCompromissos;
+    
+    const ultimoBackup = localStorage.getItem('ultimoBackup');
+    document.getElementById('ultimoBackup').textContent = ultimoBackup 
+        ? new Date(ultimoBackup).toLocaleString('pt-BR')
+        : 'Nunca';
+}
+
+document.getElementById('btnAtualizarInfo').addEventListener('click', () => {
+    atualizarInformacoes();
+    mostrarNotificacao('Informações atualizadas', 'success');
+});
+
+// ==================== BACKUP COMPLETO ====================
+
+document.getElementById('btnExportar').addEventListener('click', () => {
+    // Coletar todos os dados
+    const backupCompleto = {
+        versao: '2.0',
+        dataBackup: new Date().toISOString(),
+        clientes: DB_CLIENTES.listarTodos(),
+        fornecedores: DB_FORNECEDORES.listarTodos(),
+        vendas: DB_VENDAS.listarTodas(),
+        financeiro: DB_FINANCEIRO.carregar(),
+        agenda: DB_AGENDA.carregar()
+    };
+    
+    // Criar arquivo JSON
+    const json = JSON.stringify(backupCompleto, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    // Download
+    const timestamp = new Date().toISOString().split('T')[0];
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_completo_${timestamp}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    // Registrar último backup
+    localStorage.setItem('ultimoBackup', new Date().toISOString());
+    
+    mostrarNotificacao('Backup completo exportado com sucesso!', 'success', 4000);
+    atualizarInformacoes();
+});
+
+// ==================== IMPORTAR ====================
+
+document.getElementById('btnImportar').addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+});
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    
+    if (!file) return;
+    
+    const reader = new FileReader();
+    
+    reader.onload = (event) => {
+        try {
+            const backup = JSON.parse(event.target.result);
+            
+            // Validar estrutura
+            if (!backup.clientes || !backup.fornecedores || !backup.vendas || !backup.financeiro) {
+                mostrarNotificacao('Arquivo de backup inválido ou incompleto', 'error');
+                return;
+            }
+            
+            if (confirm('⚠️ ATENÇÃO!\n\nImportar este backup irá SUBSTITUIR todos os dados atuais.\n\nTem certeza que deseja continuar?')) {
+                // Importar dados
+                let sucesso = true;
+                
+                sucesso = sucesso && DB_CLIENTES.salvar(backup.clientes);
+                sucesso = sucesso && DB_FORNECEDORES.salvar(backup.fornecedores);
+                sucesso = sucesso && DB_VENDAS.salvar(backup.vendas);
+                sucesso = sucesso && DB_FINANCEIRO.salvar(backup.financeiro);
+                
+                // Importar agenda se existir no backup
+                if (backup.agenda) {
+                    sucesso = sucesso && DB_AGENDA.salvar(backup.agenda);
+                }
+                
+                if (sucesso) {
+                    const msg = `Backup restaurado com sucesso!\n\nClientes: ${backup.clientes.length}\nFornecedores: ${backup.fornecedores.length}\nVendas: ${backup.vendas.length}` + (backup.agenda ? `\nCompromissos: ${backup.agenda.length}` : '');
+                    mostrarNotificacao(msg, 'success', 5000);
+                    atualizarInformacoes();
+                } else {
+                    mostrarNotificacao('Erro ao restaurar alguns dados', 'error');
+                }
+            }
+            
+        } catch (erro) {
+            console.error('Erro ao importar:', erro);
+            mostrarNotificacao('Erro ao ler arquivo de backup', 'error');
+        }
+    };
+    
+    reader.readAsText(file);
+    
+    // Limpar input
+    e.target.value = '';
+});
+
+// ==================== LIMPEZA TOTAL ====================
+
+document.getElementById('btnLimparTudo').addEventListener('click', () => {
+    if (confirm('🚨 PERIGO MÁXIMO! 🚨\n\nDeseja realmente excluir TUDO do sistema?\n\n• Clientes\n• Fornecedores\n• Vendas\n• Financeiro\n• Agenda\n\nEsta ação é IRREVERSÍVEL e não pode ser desfeita!')) {
+        if (confirm('ÚLTIMA CHANCE!\n\nVocê está prestes a APAGAR TUDO.\n\nFaça backup antes se necessário.\n\nTem certeza ABSOLUTA?')) {
+            const confirmacao = prompt('Digite "EXCLUIR TUDO" (tudo maiúsculo) para confirmar:');
+            if (confirmacao === 'EXCLUIR TUDO') {
+                // Limpar tudo
+                DB_CLIENTES.limparTudo();
+                DB_FORNECEDORES.limparTudo();
+                DB_VENDAS.limparTudo();
+                DB_FINANCEIRO.limparTudo();
+                DB_AGENDA.limparTudo();
+                
+                mostrarNotificacao('🗑️ Sistema completamente limpo!', 'success', 5000);
+                atualizarInformacoes();
+            } else {
+                mostrarNotificacao('Operação cancelada', 'info');
+            }
+        }
+    }
+});
+
+console.log('Módulo de manutenção simplificado carregado');
+</script>
+
+</body>
+</html>
